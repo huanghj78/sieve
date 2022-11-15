@@ -67,3 +67,21 @@ func (n *ObjectUpdateNotification) getBlockingCh() chan string {
 
 type AsyncDoneNotification struct {
 }
+
+type ChaosSvrNotification interface {
+	getBlockingCh() chan string
+	getNotificationType() string
+}
+
+type UpdateTestPlanNotification struct {
+	notificationType string
+	blockingCh       chan string
+}
+
+func (n *UpdateTestPlanNotification) getBlockingCh() chan string {
+	return n.blockingCh
+}
+
+func (n *UpdateTestPlanNotification) getNotificationType() string {
+	return n.notificationType
+}

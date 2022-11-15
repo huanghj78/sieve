@@ -27,6 +27,17 @@ func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotific
 	}
 }
 
+func (sm *StateMachine) UpdateStates(testPlan *TestPlan) string {
+	if sm.states == nil || sm.nextState >= len(sm.states) {
+		sm.states = testPlan.actions
+		sm.nextState = 0
+		log.Println("UpdateStates Success")
+		return "1"
+	}
+	log.Println("UpdateStates Fail")
+	return "-1"
+}
+
 func (sm *StateMachine) waitForTimeout(timeoutValue int, triggerName string) {
 	time.Sleep(time.Duration(timeoutValue) * time.Second)
 	sm.timeoutNotificationCh <- &TimeoutNotification{

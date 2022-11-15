@@ -178,3 +178,10 @@ type NotifyTestAfterAnnotatedAPICallRequest struct {
 	FunName        string
 	ReconcilerType string
 }
+
+type EchoAPICallRequest struct {
+	Msg string
+}
+
+type UpdateTestPlanRequest struct {
+}

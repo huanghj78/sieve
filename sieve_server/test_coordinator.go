@@ -29,6 +29,7 @@ type testCoordinator struct {
 	testPlan                      *TestPlan
 	actionConext                  *ActionContext
 	stateNotificationCh           chan TriggerNotification
+	svrNotificationCh             chan ChaosSvrNotification
 	objectStates                  map[string]map[string]map[string]string
 	objectStatesLock              sync.RWMutex
 	controllerOngoingReadLock     *sync.Mutex
@@ -42,6 +43,7 @@ type testCoordinator struct {
 	mergedFieldPathMaskAPIFrom    map[string]map[string]struct{}
 	mergedFieldKeyMaskAPIForm     map[string]map[string]struct{}
 	stateMachine                  *StateMachine
+	chaosServer                   *ChaosServer
 }
 
 func NewTestCoordinator() *TestCoordinator {
@@ -68,10 +70,12 @@ func NewTestCoordinator() *TestCoordinator {
 	}
 	mergedFieldPathMask, mergedFieldKeyMask := getMergedMask()
 	stateNotificationCh := make(chan TriggerNotification, 500)
+	svrNotificationCh := make(chan ChaosSvrNotification, 500)
 	server := &testCoordinator{
 		testPlan:                      testPlan,
 		actionConext:                  actionConext,
 		stateNotificationCh:           stateNotificationCh,
+		svrNotificationCh:             svrNotificationCh,
 		objectStates:                  map[string]map[string]map[string]string{},
 		controllerOngoingReadLock:     controllerOngoingReadLock,
 		controllerPausingChs:          controllerPausingChs,
@@ -84,6 +88,7 @@ func NewTestCoordinator() *TestCoordinator {
 		mergedFieldPathMaskAPIFrom:    convertFieldPathMaskToAPIForm(mergedFieldPathMask),
 		mergedFieldKeyMaskAPIForm:     convertFieldKeyMaskToAPIForm(mergedFieldKeyMask),
 		stateMachine:                  NewStateMachine(testPlan, stateNotificationCh, asyncDoneCh, actionConext),
+		chaosServer:                   nil,
 	}
 	listener := &TestCoordinator{
 		Server: server,
@@ -148,6 +153,15 @@ func (tc *TestCoordinator) NotifyTestAfterAnnotatedAPICall(request *sieve.Notify
 	return tc.Server.NotifyTestAfterAnnotatedAPICall(request, response)
 }
 
+func (tc *TestCoordinator) EchoAPICall(request *sieve.EchoAPICallRequest, response *sieve.Response) error {
+	*response = sieve.Response{Message: request.Msg, Ok: true}
+	return nil
+}
+
+func (tc *TestCoordinator) UpdateTestPlanAPICall(request *sieve.UpdateTestPlanRequest, response *sieve.Response) error {
+	return tc.Server.UpdateTestPlanAPICall(request, response)
+}
+
 func (tc *testCoordinator) Start() {
 	log.Println("start testCoordinator...")
 	log.Printf("mergedFieldPathMask:\n%v\n", tc.mergedFieldPathMask)
@@ -157,7 +171,9 @@ func (tc *testCoordinator) Start() {
 	if tc.testPlan.actions == nil {
 		log.Println("Sieve test coordinator finishes all actions")
 	}
+	tc.chaosServer = NewChaosServer(tc.svrNotificationCh, tc.stateMachine)
 	go tc.stateMachine.run()
+	go tc.chaosServer.run()
 }
 
 func (tc *testCoordinator) SendObjectCreateNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string) {
@@ -560,5 +576,19 @@ func (tc *testCoordinator) NotifyTestAfterAnnotatedAPICall(request *sieve.Notify
 	log.Printf("%s\t%s\t%s\t%s\t%s\t%s", handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, request.ReconcilerType)
 	tc.SendAnnotatedAPICallNotificationAndBlock(handlerName, request.ModuleName, request.FilePath, request.ReceiverType, request.FunName, afterAnnotatedAPICall, request.ReconcilerType)
 	*response = sieve.Response{Message: "", Ok: true}
+	return nil
+}
+
+func (tc *testCoordinator) UpdateTestPlanAPICall(request *sieve.UpdateTestPlanRequest, response *sieve.Response) error {
+	blockingCh := make(chan string)
+	notification := &UpdateTestPlanNotification{
+		notificationType: "UpdateTestPlan",
+		blockingCh:       blockingCh,
+	}
+	log.Println("send UpdateTestPlanAPICall\n")
+	tc.svrNotificationCh <- notification
+	res := <-blockingCh
+	log.Println("block over for UpdateTestPlanAPICall\n")
+	*response = sieve.Response{Message: res, Ok: true}
 	return nil
 }
