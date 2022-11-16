@@ -14,11 +14,9 @@ func main() {
 		fmt.Printf("error in setting up connection to %s due to %v\n", hostPort, err)
 		return
 	}
-	request := sieve.EchoAPICallRequest{
-		Msg: "Hello!",
-	}
+	request := sieve.UpdateTestPlanRequest{}
 	var response sieve.Response
-	err = rpcClient.Call("TestCoordinator.EchoAPICall", request, &response)
+	err = rpcClient.Call("TestCoordinator.UpdateTestPlanAPICall", request, &response)
 	if err != nil {
 		fmt.Println("RPCCall Failed", err)
 		return
