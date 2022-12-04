@@ -274,6 +274,16 @@ func loadActionsAndTriggers(testPlan map[string]interface{}) error {
 	log.Printf("triggerDefinitionsByResourceKey:\n%v\n", triggerDefinitionsByResourceKey)
 	return nil
 }
+map[secret/default/mongodb-cluster-secrets:
+[map[
+condition:map[
+conditionType:onObjectCreate 
+occurrence:1 
+resourceKey:secret/default/mongodb-cluster-secrets] 
+observationPoint:map[
+by:github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB) 
+when:afterControllerWrite] 
+triggerName:trigger1]]]
 
 func loadSieveConfigFromEnv(testMode bool) error {
 	if config != nil {
@@ -313,6 +323,10 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, tes
 		return nil
 	}
 	if eventType == "ADDED" {
+		log.Println("=============================================")
+		log.Printf("%#v\n", object)
+		log.Println(eventType)
+		log.Println(key)
 		tokens := strings.Split(key, "/")
 		if len(tokens) < 4 {
 			return fmt.Errorf("tokens len should be >= 4")
@@ -361,9 +375,11 @@ func loadSieveConfigFromConfigMap(eventType, key string, object interface{}, tes
 					return fmt.Errorf("fail to load from configmap")
 				}
 			} else {
+				log.Println(resourceType)
 				return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
 			}
 		} else {
+			log.Println(namespace, name)
 			return fmt.Errorf("have not seen ADDED configmap/default/sieve-testing-global-config yet")
 		}
 	} else {

@@ -33,7 +33,7 @@ func (cs *ChaosServer) updateTestPlan(notification ChaosSvrNotification) {
 }
 
 func (cs *ChaosServer) handler(notification ChaosSvrNotification) {
-	if notification.getNotificationType() == "UpdateTestPlan" {
+	if notification.getNotificationType() == UpdateTestPlan {
 		cs.updateTestPlan(notification)
 	}
 }

@@ -146,7 +146,8 @@ def install_lib_for_controller(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null"
         % controller_config.controller_runtime_version
     )
-    cmd_early_exit("mkdir -p %s/sieve-dependency/src/sigs.k8s.io" % application_dir)
+    cmd_early_exit("mkdir -p %s/sieve-dependency/src/sigs.k8s.io" %
+                   application_dir)
     cmd_early_exit(
         "cp -r ${GOPATH}/pkg/mod/sigs.k8s.io/controller-runtime@%s %s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
         % (
@@ -493,14 +494,18 @@ def setup_controller(
             )
             instrument_controller(common_config, controller_config, mode)
         else:
-            install_lib_for_controller_with_vendor(common_config, controller_config)
+            install_lib_for_controller_with_vendor(
+                common_config, controller_config)
             update_go_mod_for_controller_with_vendor(
                 controller_config_dir, common_config, controller_config
             )
-            instrument_controller_with_vendor(common_config, controller_config, mode)
-    build_controller(common_config, controller_config, image_tag, container_registry)
+            instrument_controller_with_vendor(
+                common_config, controller_config, mode)
+    build_controller(common_config, controller_config,
+                     image_tag, container_registry)
     if push_to_remote:
-        push_controller(common_config, controller_config, image_tag, container_registry)
+        push_controller(common_config, controller_config,
+                        image_tag, container_registry)
 
 
 def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
@@ -520,7 +525,8 @@ def setup_kubernetes_wrapper(version, mode, container_registry, push_to_remote):
             )
     else:
         image_tag = version + "-" + mode
-        setup_kubernetes(version, mode, container_registry, image_tag, push_to_remote)
+        setup_kubernetes(version, mode, container_registry,
+                         image_tag, push_to_remote)
 
 
 def setup_controller_wrapper(
@@ -643,7 +649,8 @@ if __name__ == "__main__":
             options.push_to_remote,
         )
     else:
-        controller_config = load_controller_config(options.controller_config_dir)
+        controller_config = load_controller_config(
+            options.controller_config_dir)
         if options.sha is not None:
             controller_config.commit = options.sha
         setup_controller_wrapper(

@@ -17,18 +17,18 @@ func NewChaosServer(svrNotificationCh chan ChaosSvrNotification, sm *StateMachin
 }
 
 func (cs *ChaosServer) updateTestPlan(notification ChaosSvrNotification) {
-	ret := "0"
+	ret := "Success"
 	defer func() {
 		if blockingCh := notification.getBlockingCh(); blockingCh != nil {
 			log.Println("release the blocking ch")
 			blockingCh <- ret
 		}
 	}()
-
 	config := getConfig()
 	testPlan := parseTestPlan(config)
-	ret = cs.stateMachine.UpdateStates(testPlan)
-	log.Println("update states success")
+	if err := cs.stateMachine.UpdateStates(testPlan, notification.getIsRunImmediately()); err != nil {
+		ret = err
+	}
 	log.Println(testPlan)
 }
 

@@ -64,6 +64,10 @@ func (n *ObjectUpdateNotification) getBlockingCh() chan string {
 type AsyncDoneNotification struct {
 }
 
+const (
+	UpdateTestPlan = iota
+)
+
 type ChaosSvrNotification interface {
 	getBlockingCh() chan string
 	getNotificationType() string
@@ -71,6 +75,7 @@ type ChaosSvrNotification interface {
 
 type UpdateTestPlanNotification struct {
 	notificationType string
+	isRunImmediately bool
 	blockingCh       chan string
 }
 
@@ -80,4 +85,8 @@ func (n *UpdateTestPlanNotification) getBlockingCh() chan string {
 
 func (n *UpdateTestPlanNotification) getNotificationType() string {
 	return n.notificationType
+}
+
+func (n *UpdateTestPlanNotification) getIsRunImmediately() bool {
+	return n.isRunImmediately
 }

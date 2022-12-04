@@ -565,8 +565,9 @@ func (tc *testCoordinator) NotifyTestAfterAnnotatedAPICall(request *sieve.Notify
 func (tc *testCoordinator) UpdateTestPlanAPICall(request *sieve.UpdateTestPlanRequest, response *sieve.Response) error {
 	blockingCh := make(chan string)
 	notification := &UpdateTestPlanNotification{
-		notificationType: "UpdateTestPlan",
+		notificationType: UpdateTestPlan,
 		blockingCh:       blockingCh,
+		isRunImmediately: request.IsRunImmediately,
 	}
 	log.Println("send UpdateTestPlanAPICall\n")
 	tc.svrNotificationCh <- notification

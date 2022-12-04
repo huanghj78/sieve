@@ -58,6 +58,7 @@ const (
 	resumeControllerWrite string = "resumeControllerWrite"
 	restartController     string = "restartController"
 	reconnectController   string = "reconnectController"
+	delayAPIServere       string = "delayAPIServere"
 )
 
 var mergedMaskLock sync.Mutex

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"time"
+	"errors"
 )
 
 type StateMachine struct {
@@ -27,15 +28,15 @@ func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotific
 	}
 }
 
-func (sm *StateMachine) UpdateStates(testPlan *TestPlan) string {
+func (sm *StateMachine) UpdateStates(testPlan *TestPlan) error {
 	if sm.states == nil || sm.nextState >= len(sm.states) {
 		sm.states = testPlan.actions
 		sm.nextState = 0
 		log.Println("UpdateStates Success")
-		return "1"
+		return nil
 	}
 	log.Println("UpdateStates Fail")
-	return "-1"
+	return errros.New("UpdateStates Fail")
 }
 
 func (sm *StateMachine) waitForTimeout(timeoutValue int, triggerName string) {

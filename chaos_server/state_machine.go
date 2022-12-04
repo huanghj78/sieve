@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"time"
 )
@@ -27,15 +29,18 @@ func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotific
 	}
 }
 
-func (sm *StateMachine) UpdateStates(testPlan *TestPlan) string {
+func (sm *StateMachine) UpdateStates(testPlan *TestPlan, isRunImmediately bool) error {
 	if sm.states == nil || sm.nextState >= len(sm.states) {
 		sm.states = testPlan.actions
 		sm.nextState = 0
 		log.Println("UpdateStates Success")
-		return "1"
+		if isRunImmediately {
+			log.Println("Begin Run Test Plan")
+		}
+		return nil
 	}
 	log.Println("UpdateStates Fail")
-	return "-1"
+	return errors.New(fmt.Sprintf("%#v, nextState: %d, length of states: %d", sm.states, sm.nextState, len(sm.states)))
 }
 
 func (sm *StateMachine) waitForTimeout(timeoutValue int, triggerName string) {

@@ -486,25 +486,31 @@ func NotifyTestAfterAnnotatedAPICall(invocationID int, moduleName string, filePa
 
 func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 	if err := loadSieveConfigFromConfigMap(eventType, key, object, true); err != nil {
+		log.Println("loadSieveConfigFromConfigMap", err)
 		return
 	}
 	// we should log the API event before initializing the client
 	LogAPIEvent(eventType, key, object)
 	if err := initRPCClient(); err != nil {
+		log.Println("initRPCClient", err)
 		return
 	}
 	if err := initAPIServerHostName(); err != nil {
+		log.Println("initAPIServerHostName", err)
 		return
 	}
+	// log.Println("apiserverHostname:", apiserverHostname)
 	resourceType := getResourceTypeFromObj(object)
 	namespace, name, err := getResourceNamespaceNameFromAPIKey(key)
 	if err != nil {
+		log.Println("getResourceNamespaceNameFromAPIKey", err)
 		return
 	}
 	resourceKey := generateResourceKey(resourceType, namespace, name)
-	if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeAPIServerRecv", false) {
-		return
-	}
+	// if !checkKVPairInTriggerObservationPoint(resourceKey, "when", "beforeAPIServerRecv", false) {
+	// 	log.Println("checkKVPairInTriggerObservationPoint")
+	// 	return
+	// }
 	jsonObject, err := json.Marshal(object)
 	if err != nil {
 		printSerializationError(err)

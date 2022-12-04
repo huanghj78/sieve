@@ -499,6 +499,63 @@ func (a *ReconnectControllerAction) run(actionContext *ActionContext) {
 	}
 }
 
+type DelayAPIServerAction struct {
+	apiServerName      string
+	pauseScope         string
+	async              bool
+	waitBefore         int
+	waitAfter          int
+	delayTime		   int
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *DelayAPIServerAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *DelayAPIServerAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *DelayAPIServerAction) isAsync() bool {
+	return a.async
+}
+
+func (a *DelayAPIServerAction) runInternal(actionContext *ActionContext, async bool) {
+	log.Println("run the DelayAPIServerAction")
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
+	go func(){
+		if _, ok := actionContext.apiserverLockedMap[a.apiServerName]; !ok {
+			actionContext.apiserverLockedMap[a.apiServerName] = map[string]bool{}
+		}
+		if _, ok := actionContext.apiserverLocks[a.apiServerName]; !ok {
+			actionContext.apiserverLocks[a.apiServerName] = map[string]chan string{}
+		}
+		log.Printf("Create channel for %s %s\n", a.apiServerName, a.pauseScope)
+		if _, ok := actionContext.apiserverLocks[a.apiServerName][a.pauseScope]; !ok {
+			actionContext.apiserverLocks[a.apiServerName][a.pauseScope] = make(chan string)
+		}
+		actionContext.apiserverLockedMap[a.apiServerName][a.pauseScope] = true
+		time.Sleep(time.Duration(a.delayTime) * time.Second)
+		log.Printf("Close channel for %s %s\n", a.apiServerName, a.pauseScope)
+		actionContext.apiserverLocks[a.apiServerName][a.pauseScope] <- "release"
+		close(actionContext.apiserverLocks[a.apiServerName][a.pauseScope])
+		actionContext.apiserverLockedMap[a.apiServerName][a.pauseScope] = false
+	}
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
+	log.Println("DelayAPIServerAction done")
+}
+
+
+
 type TestPlan struct {
 	actions []Action
 }
@@ -706,6 +763,17 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			waitAfter:          waitAfter,
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
+		}
+	case delayAPIServere:
+		return &DelayAPIServerAction{
+			apiServerName:      raw["apiServerName"].(string),
+			pauseScope:         raw["pauseScope"].(string),
+			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
+			delayTime:		    raw["delayTime"].(int)
+			triggerGraph:       triggerGraph
+			triggerDefinitions: triggerDefinition
 		}
 	default:
 		log.Fatalf("invalid action type %s\n", actionType)

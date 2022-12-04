@@ -3,6 +3,8 @@ package main
 import (
 	"io/ioutil"
 	"log"
+
+	"gopkg.in/yaml.v2"
 )
 
 func getConfig() map[interface{}]interface{} {

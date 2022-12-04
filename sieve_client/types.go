@@ -184,4 +184,5 @@ type EchoAPICallRequest struct {
 }
 
 type UpdateTestPlanRequest struct {
+	IsRunImmediately bool
 }

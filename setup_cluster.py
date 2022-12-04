@@ -4,6 +4,7 @@ import kubernetes
 import time
 import traceback
 import sieve
+import yaml
 from sieve_common.config import (
     get_common_config,
     load_controller_config,
@@ -19,6 +20,18 @@ from sieve_common.common import (
     cmd_early_exit,
     deploy_directory,
 )
+
+
+def generate_configmap(test_plan):
+    test_plan_content = open(test_plan).read()
+    configmap = {}
+    configmap["apiVersion"] = "v1"
+    configmap["kind"] = "ConfigMap"
+    configmap["metadata"] = {"name": "sieve-testing-global-config"}
+    configmap["data"] = {"sieveTestPlan": test_plan_content}
+    configmap_path = "%s-configmap.yaml" % test_plan[:-5]
+    yaml.dump(configmap, open(configmap_path, "w"), sort_keys=False)
+    return configmap_path
 
 
 def generate_kind_config(num_apiservers, num_workers):
@@ -54,6 +67,14 @@ if __name__ == "__main__":
         dest="controller_config_dir",
         help="specify the CONTROLLER_CONFIG_DIR",
         metavar="CONTROLLER_CONFIG_DIR",
+        default="examples/mongodb-operator",
+    )
+    parser.add_option(
+        "-p",
+        "--test_plan",
+        dest="test_plan",
+        help="",
+        metavar="CONTROLLER_CONFIG_DIR",
     )
     (options, args) = parser.parse_args()
     if options.controller_config_dir is None:
@@ -61,10 +82,10 @@ if __name__ == "__main__":
     controller_config = sieve.load_controller_config(
         options.controller_config_dir)
     mode = "test"
-    test_plan = "/root/sieve/sieve_learn_results/mongodb-operator/recreate/generate-oracle/learn.yaml/intermediate-state/intermediate-state-test-plan-1.yaml"
+    test_plan = options.test_plan
     container_registry = common_config.container_registry
     image_tag = "test"
-    num_apiservers = 3
+    num_apiservers = 1
     num_workers = 3
     # sieve.setup_kind_cluster(test_context)
     kind_config = generate_kind_config(
@@ -112,17 +133,47 @@ if __name__ == "__main__":
             break
         time.sleep(1)
     # sieve.prepare_sieve_server(test_context)
-    cmd_early_exit("cp %s sieve_server/server.yaml" % test_plan)
+    cmd_early_exit("cp %s chaos_server/server.yaml" % test_plan)
     org_dir = os.getcwd()
-    os.chdir("sieve_server")
+    os.chdir("chaos_server")
     cmd_early_exit("go mod tidy")
     # TODO: we should build a container image for sieve server
     cmd_early_exit("env GOOS=linux GOARCH=amd64 go build")
     os.chdir(org_dir)
-    cmd_early_exit("docker cp sieve_server kind-control-plane:/sieve_server")
-
+    cmd_early_exit("docker cp chaos_server kind-control-plane:/chaos_server")
+    cprint("Update APIServer...", bcolors.OKGREEN)
+    cmd_early_exit(
+        "docker cp /root/chaos_sieve/fakegopath/src/k8s.io/kubernetes/_output/release-images/amd64/kube-apiserver.tar kind-control-plane:/")
+    cmd_early_exit(
+        'docker exec kind-control-plane sh -c "ctr -n k8s.io images import kube-apiserver.tar"')
+    cmd_early_exit("docker exec kind-control-plane sh -c \"sed -i 's/kube-apiserver:v1.18.9-sieve-94f372e501c973a7fa9eb40ec9ebd2fe7ca69848-dirty/kube-apiserver-amd64:v1.18.9-dirty/' /etc/kubernetes/manifests/kube-apiserver.yaml\"")
+    ok("APIServer Updated")
     cprint("Setting up Sieve server...", bcolors.OKGREEN)
     cmd_early_exit(
-        "docker exec kind-control-plane bash -c 'cd /sieve_server && ./sieve-server &> sieve-server.log &'"
+        "docker exec kind-control-plane bash -c 'cd /chaos_server && ./chaos_server &> chaos_server.log &'"
     )
     ok("Sieve server set up")
+
+    print("Waiting for apiservers to be ready...")
+    # ensure that every apiserver will see the configmap is created
+    time.sleep(60)
+    cprint("Generate Config Map...", bcolors.OKGREEN)
+    configmap = generate_configmap(test_plan)
+    print(configmap)
+    cmd_early_exit("kubectl apply -f %s" % configmap)
+
+    # Preload operator image to kind nodes
+    image = "%s/%s:%s" % (
+        container_registry,
+        controller_config.controller_name,
+        image_tag,
+    )
+    kind_load_cmd = "kind load docker-image %s" % (image)
+    print("Loading image %s to kind nodes..." % (image))
+    if cmd_early_exit(kind_load_cmd, early_exit=False) != 0:
+        print("Cannot load image %s locally, try to pull from remote" % (image))
+        cmd_early_exit("docker pull %s" % (image))
+        cmd_early_exit(kind_load_cmd)
+    ok("Gen Config Map Finished")
+
+    cmd_early_exit("docker cp user_client kind-control-plane:/chaos_server")
