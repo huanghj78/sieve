@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"net/rpc"
 	"os"
+
 	"sieve.client"
 )
 
 func main() {
+	var isRunImmediately bool
 	if os.Args[1] == "0" {
-		isRunImmediately := false
+		isRunImmediately = false
 	} else {
-		isRunImmediately := true
+		isRunImmediately = true
 	}
 	hostPort := "kind-control-plane:12345"
 	rpcClient, err := rpc.Dial("tcp", hostPort)
@@ -20,7 +22,7 @@ func main() {
 		return
 	}
 	request := sieve.UpdateTestPlanRequest{
-		IsRunImmediately: isRunImmediately
+		IsRunImmediately: isRunImmediately,
 	}
 	var response sieve.Response
 	err = rpcClient.Call("TestCoordinator.UpdateTestPlanAPICall", request, &response)

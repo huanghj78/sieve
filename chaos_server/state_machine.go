@@ -29,6 +29,23 @@ func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotific
 	}
 }
 
+func (sm *StateMachine) RunTestPlan() {
+	log.Println("Here is RunTestPlan")
+	for _, action range sm.states {
+		action.run(sm.actionConext)
+		if !action.isAsync() {
+			sm.nextState += 1
+			if sm.nextState >= len(sm.states) {
+				log.Println("Sieve test coordinator finishes all actions")
+			} else {
+				sm.setTimeoutForTimeoutTriggers()
+			}
+		} else {
+			sm.asyncActionInExecution = true
+		}
+	}
+}
+
 func (sm *StateMachine) UpdateStates(testPlan *TestPlan, isRunImmediately bool) error {
 	if sm.states == nil || sm.nextState >= len(sm.states) {
 		sm.states = testPlan.actions
@@ -36,6 +53,8 @@ func (sm *StateMachine) UpdateStates(testPlan *TestPlan, isRunImmediately bool) 
 		log.Println("UpdateStates Success")
 		if isRunImmediately {
 			log.Println("Begin Run Test Plan")
+			sm.RunTestPlan()
+			log.Println("Finish Run Test Plan")
 		}
 		return nil
 	}

@@ -33,6 +33,7 @@ if __name__ == "__main__":
         dest="controller_config_dir",
         help="specify the CONTROLLER_CONFIG_DIR",
         metavar="CONTROLLER_CONFIG_DIR",
+        default="examples/mongodb-operator",
     )
     parser.add_option(
         "-w",

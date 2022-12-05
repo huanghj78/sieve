@@ -4,4 +4,5 @@ use (
 	./sieve_client
 	./sieve_server
 	./sieve_instrumentation
+	./chaos_server
 )

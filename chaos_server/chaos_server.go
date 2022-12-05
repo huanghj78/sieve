@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -16,7 +17,7 @@ func NewChaosServer(svrNotificationCh chan ChaosSvrNotification, sm *StateMachin
 	}
 }
 
-func (cs *ChaosServer) updateTestPlan(notification ChaosSvrNotification) {
+func (cs *ChaosServer) updateTestPlan(notification *UpdateTestPlanNotification) {
 	ret := "Success"
 	defer func() {
 		if blockingCh := notification.getBlockingCh(); blockingCh != nil {
@@ -27,14 +28,20 @@ func (cs *ChaosServer) updateTestPlan(notification ChaosSvrNotification) {
 	config := getConfig()
 	testPlan := parseTestPlan(config)
 	if err := cs.stateMachine.UpdateStates(testPlan, notification.getIsRunImmediately()); err != nil {
-		ret = err
+		ret = fmt.Sprintf("%s", err)
 	}
 	log.Println(testPlan)
 }
 
 func (cs *ChaosServer) handler(notification ChaosSvrNotification) {
-	if notification.getNotificationType() == "UpdateTestPlan" {
-		cs.updateTestPlan(notification)
+	if notification.getNotificationType() == UpdateTestPlan {
+		v, ok := notification.(*UpdateTestPlanNotification)
+		if ok {
+			cs.updateTestPlan(v)
+		} else {
+			log.Println("!!!!!")
+		}
+
 	}
 }
 

@@ -274,16 +274,6 @@ func loadActionsAndTriggers(testPlan map[string]interface{}) error {
 	log.Printf("triggerDefinitionsByResourceKey:\n%v\n", triggerDefinitionsByResourceKey)
 	return nil
 }
-map[secret/default/mongodb-cluster-secrets:
-[map[
-condition:map[
-conditionType:onObjectCreate 
-occurrence:1 
-resourceKey:secret/default/mongodb-cluster-secrets] 
-observationPoint:map[
-by:github.com/percona/percona-server-mongodb-operator/pkg/controller/perconaservermongodb.(*ReconcilePerconaServerMongoDB) 
-when:afterControllerWrite] 
-triggerName:trigger1]]]
 
 func loadSieveConfigFromEnv(testMode bool) error {
 	if config != nil {

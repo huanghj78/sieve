@@ -32,4 +32,4 @@ if __name__ == "__main__":
     cmd_early_exit(
         f"docker cp {test_plan} kind-control-plane:/chaos_server/server.yaml")
     cmd_early_exit(
-        f"docker exec kind-control-plane -c '/chaos_server/user_client {is_run_immediately}'")
+        f"docker exec kind-control-plane bash -c '/chaos_server/user_client {is_run_immediately}'")

@@ -70,11 +70,11 @@ const (
 
 type ChaosSvrNotification interface {
 	getBlockingCh() chan string
-	getNotificationType() string
+	getNotificationType() int
 }
 
 type UpdateTestPlanNotification struct {
-	notificationType string
+	notificationType int
 	isRunImmediately bool
 	blockingCh       chan string
 }
@@ -83,7 +83,7 @@ func (n *UpdateTestPlanNotification) getBlockingCh() chan string {
 	return n.blockingCh
 }
 
-func (n *UpdateTestPlanNotification) getNotificationType() string {
+func (n *UpdateTestPlanNotification) getNotificationType() int {
 	return n.notificationType
 }
 

@@ -505,7 +505,7 @@ type DelayAPIServerAction struct {
 	async              bool
 	waitBefore         int
 	waitAfter          int
-	delayTime		   int
+	delayTime          int
 	triggerGraph       *TriggerGraph
 	triggerDefinitions map[string]TriggerDefinition
 }
@@ -527,7 +527,7 @@ func (a *DelayAPIServerAction) runInternal(actionContext *ActionContext, async b
 	if a.waitBefore > 0 {
 		time.Sleep(time.Duration(a.waitBefore) * time.Second)
 	}
-	go func(){
+	go func() {
 		if _, ok := actionContext.apiserverLockedMap[a.apiServerName]; !ok {
 			actionContext.apiserverLockedMap[a.apiServerName] = map[string]bool{}
 		}
@@ -544,7 +544,7 @@ func (a *DelayAPIServerAction) runInternal(actionContext *ActionContext, async b
 		actionContext.apiserverLocks[a.apiServerName][a.pauseScope] <- "release"
 		close(actionContext.apiserverLocks[a.apiServerName][a.pauseScope])
 		actionContext.apiserverLockedMap[a.apiServerName][a.pauseScope] = false
-	}
+	}()
 	if a.waitAfter > 0 {
 		time.Sleep(time.Duration(a.waitAfter) * time.Second)
 	}
@@ -554,7 +554,13 @@ func (a *DelayAPIServerAction) runInternal(actionContext *ActionContext, async b
 	log.Println("DelayAPIServerAction done")
 }
 
-
+func (a *DelayAPIServerAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
+}
 
 type TestPlan struct {
 	actions []Action
@@ -771,9 +777,9 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			async:              async,
 			waitBefore:         waitBefore,
 			waitAfter:          waitAfter,
-			delayTime:		    raw["delayTime"].(int)
-			triggerGraph:       triggerGraph
-			triggerDefinitions: triggerDefinition
+			delayTime:          raw["delayTime"].(int),
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
 		}
 	default:
 		log.Fatalf("invalid action type %s\n", actionType)

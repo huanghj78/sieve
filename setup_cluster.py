@@ -75,6 +75,7 @@ if __name__ == "__main__":
         dest="test_plan",
         help="",
         metavar="CONTROLLER_CONFIG_DIR",
+        default="/root/chaos_sieve/mytest/create-restart-controller.yaml",
     )
     (options, args) = parser.parse_args()
     if options.controller_config_dir is None:
@@ -175,5 +176,6 @@ if __name__ == "__main__":
         cmd_early_exit("docker pull %s" % (image))
         cmd_early_exit(kind_load_cmd)
     ok("Gen Config Map Finished")
-
+    
+    cmd_early_exit("go build user_client.go")
     cmd_early_exit("docker cp user_client kind-control-plane:/chaos_server")
