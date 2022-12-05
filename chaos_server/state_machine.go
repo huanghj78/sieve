@@ -31,7 +31,7 @@ func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotific
 
 func (sm *StateMachine) RunTestPlan() {
 	log.Println("Here is RunTestPlan")
-	for _, action range sm.states {
+	for _, action := range sm.states {
 		action.run(sm.actionConext)
 		if !action.isAsync() {
 			sm.nextState += 1

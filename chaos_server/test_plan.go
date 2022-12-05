@@ -770,7 +770,7 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
-	case delayAPIServere:
+	case delayAPIServer:
 		return &DelayAPIServerAction{
 			apiServerName:      raw["apiServerName"].(string),
 			pauseScope:         raw["pauseScope"].(string),
