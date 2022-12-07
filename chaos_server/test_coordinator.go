@@ -163,7 +163,8 @@ func (tc *testCoordinator) Start() {
 	go tc.chaosServer.run()
 }
 
-func (tc *testCoordinator) SendObjectCreateNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string) {
+func (tc *testCoordinator) SendObjectCreateNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string) (ret int) {
+	ret = 0
 	blockingCh := make(chan string)
 	notification := &ObjectCreateNotification{
 		resourceKey:  resourceKey,
@@ -173,11 +174,15 @@ func (tc *testCoordinator) SendObjectCreateNotificationAndBlock(handlerName, res
 	}
 	log.Printf("%s: send ObjectCreateNotification\n", handlerName)
 	tc.stateNotificationCh <- notification
-	<-blockingCh
+	if <-blockingCh == "Omit" {
+		ret = 1
+	}
 	log.Printf("%s: block over for ObjectCreateNotification\n", handlerName)
+	return
 }
 
-func (tc *testCoordinator) SendObjectDeleteNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string) {
+func (tc *testCoordinator) SendObjectDeleteNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string) (ret int) {
+	ret = 0
 	blockingCh := make(chan string)
 	notification := &ObjectDeleteNotification{
 		resourceKey:  resourceKey,
@@ -187,11 +192,15 @@ func (tc *testCoordinator) SendObjectDeleteNotificationAndBlock(handlerName, res
 	}
 	log.Printf("%s: send ObjectDeleteNotification\n", handlerName)
 	tc.stateNotificationCh <- notification
-	<-blockingCh
+	if <-blockingCh == "Omit" {
+		ret = 1
+	}
 	log.Printf("%s: block over for ObjectDeleteNotification\n", handlerName)
+	return
 }
 
-func (tc *testCoordinator) SendObjectUpdateNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string, prevState, curState map[string]interface{}) {
+func (tc *testCoordinator) SendObjectUpdateNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string, prevState, curState map[string]interface{}) (ret int) {
+	ret = 0
 	blockingCh := make(chan string)
 	notification := &ObjectUpdateNotification{
 		resourceKey:  resourceKey,
@@ -203,8 +212,11 @@ func (tc *testCoordinator) SendObjectUpdateNotificationAndBlock(handlerName, res
 	}
 	log.Printf("%s: send ObjectUpdateNotification\n", handlerName)
 	tc.stateNotificationCh <- notification
-	<-blockingCh
+	if <-blockingCh == "Omit" {
+		ret = 1
+	}
 	log.Printf("%s: block over for ObjectUpdateNotification\n", handlerName)
+	return
 }
 
 func (tc *testCoordinator) SendAnnotatedAPICallNotificationAndBlock(handlerName, module, filePath, receiverType, funName, observedWhen, observedBy string) {
@@ -363,20 +375,25 @@ func (tc *testCoordinator) NotifyTestBeforeAPIServerRecv(request *sieve.NotifyTe
 	handlerName := "NotifyTestBeforeAPIServerRecv"
 	log.Printf("%s\t%s\t%s\t%s\t%s", request.APIServerHostname, handlerName, request.OperationType, request.ResourceKey, request.Object)
 	tc.InitializeObjectStatesEntry(request.APIServerHostname, beforeAPIServerRecv, request.ResourceKey)
+	ret := 0
 	switch request.OperationType {
 	case API_ADDED:
-		tc.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, beforeAPIServerRecv, request.APIServerHostname)
+		ret = tc.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, beforeAPIServerRecv, request.APIServerHostname)
 	case API_MODIFIED:
 		prevObjectStateStr := tc.ReadFromObjectStates(request.APIServerHostname, beforeAPIServerRecv, request.ResourceKey)
-		tc.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, beforeAPIServerRecv, request.APIServerHostname, strToMap(prevObjectStateStr), strToMap(request.Object))
+		ret = tc.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, beforeAPIServerRecv, request.APIServerHostname, strToMap(prevObjectStateStr), strToMap(request.Object))
 	case API_DELETED:
-		tc.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, beforeAPIServerRecv, request.APIServerHostname)
+		ret = tc.SendObjectDeleteNotificationAndBlock(handlerName, request.ResourceKey, beforeAPIServerRecv, request.APIServerHostname)
 	default:
 		log.Printf("do not support %s\n", request.OperationType)
 	}
 	tc.WriteToObjectStates(request.APIServerHostname, beforeAPIServerRecv, request.ResourceKey, request.Object)
 	tc.ProcessPauseAPIServerRecv(handlerName, request.APIServerHostname, request.ResourceKey)
-	*response = sieve.Response{Message: "", Ok: true}
+	msg := ""
+	if ret == 1 {
+		msg = "Omit"
+	}
+	*response = sieve.Response{Message: msg, Ok: true}
 	return nil
 }
 

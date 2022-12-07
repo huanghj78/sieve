@@ -562,6 +562,49 @@ func (a *DelayAPIServerAction) run(actionContext *ActionContext) {
 	}
 }
 
+type OmitEventAction struct {
+	async              bool
+	waitBefore         int
+	waitAfter          int
+	triggerGraph       *TriggerGraph
+	triggerDefinitions map[string]TriggerDefinition
+}
+
+func (a *OmitEventAction) getTriggerGraph() *TriggerGraph {
+	return a.triggerGraph
+}
+
+func (a *OmitEventAction) getTriggerDefinitions() map[string]TriggerDefinition {
+	return a.triggerDefinitions
+}
+
+func (a *OmitEventAction) isAsync() bool {
+	return a.async
+}
+
+func (a *OmitEventAction) runInternal(actionContext *ActionContext, async bool) {
+	log.Println("run the OmitEventAction")
+	if a.waitBefore > 0 {
+		time.Sleep(time.Duration(a.waitBefore) * time.Second)
+	}
+
+	if a.waitAfter > 0 {
+		time.Sleep(time.Duration(a.waitAfter) * time.Second)
+	}
+	if async {
+		actionContext.asyncDoneCh <- &AsyncDoneNotification{}
+	}
+	log.Println("OmitEventAction done")
+}
+
+func (a *OmitEventAction) run(actionContext *ActionContext) {
+	if a.async {
+		go a.runInternal(actionContext, true)
+	} else {
+		a.runInternal(actionContext, false)
+	}
+}
+
 type TestPlan struct {
 	actions []Action
 }

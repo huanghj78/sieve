@@ -80,10 +80,11 @@ func (sm *StateMachine) setTimeoutForTimeoutTriggers() {
 }
 
 func (sm *StateMachine) processNotification(notification TriggerNotification) {
+	msg := "release"
 	defer func() {
 		if blockingCh := notification.getBlockingCh(); blockingCh != nil {
 			log.Println("release the blocking ch")
-			blockingCh <- "release"
+			blockingCh <- msg
 		}
 	}()
 	if sm.states == nil {
@@ -113,6 +114,9 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 			if triggerGraph.fullyTriggered() {
 				log.Printf("all triggers are satisfied for action %d\n", sm.nextState)
 				action.run(sm.actionConext)
+				if _, ok := action.(OmitEventAction); ok {
+					msg = "Omit"
+				}
 				if !action.isAsync() {
 					sm.nextState += 1
 					if sm.nextState >= len(sm.states) {

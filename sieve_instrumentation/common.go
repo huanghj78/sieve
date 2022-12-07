@@ -359,14 +359,41 @@ func instrumentWatchCacheGoForAll(ifilepath, ofilepath, mode string, instrumentB
 	}
 
 	if instrumentBefore {
-		instrumentationInProcessEventBeforeReconcile := &dst.ExprStmt{
-			X: &dst.CallExpr{
-				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
-				Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
+		retVar := "ret"
+		instrumentationIfOmit := &dst.IfStmt{
+			Cond: &dst.BinaryExpr{
+				X:  &dst.Ident{Name: retVar},
+				Op: token.EQL,
+				Y:  &dst.Ident{Name: "1"},
+			},
+			Body: &dst.BlockStmt{
+				List: []dst.Stmt{
+					&dst.ReturnStmt{
+						Results: []dst.Expr{&dst.Ident{Name: "nil"}},
+					},
+				},
 			},
 		}
+		instrumentationIfOmit.Decs.End.Append("//sieve")
+		insertStmt(&funcDecl.Body.List, instrumentationIndex, instrumentationIfOmit)
+
+		instrumentationInProcessEventBeforeReconcile := &dst.AssignStmt{
+			Lhs: []dst.Expr{&dst.Ident{Name: retVar}},
+			Rhs: []dst.Expr{&dst.CallExpr{
+				Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+				Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
+			}},
+			Tok: token.DEFINE,
+		}
+		// instrumentationInProcessEventBeforeReconcile := &dst.ExprStmt{
+		// 	X: &dst.CallExpr{
+		// 		Fun:  &dst.Ident{Name: funNameBefore, Path: "sieve.client"},
+		// 		Args: []dst.Expr{&dst.Ident{Name: "string(event.Type)"}, &dst.Ident{Name: "key"}, &dst.Ident{Name: "event.Object"}},
+		// 	},
+		// }
 		instrumentationInProcessEventBeforeReconcile.Decs.End.Append("//sieve")
 		insertStmt(&funcDecl.Body.List, instrumentationIndex, instrumentationInProcessEventBeforeReconcile)
+
 	}
 
 	if instrumentAfter {

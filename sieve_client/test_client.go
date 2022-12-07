@@ -484,7 +484,8 @@ func NotifyTestAfterAnnotatedAPICall(invocationID int, moduleName string, filePa
 	checkResponse(response)
 }
 
-func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
+func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) (ret int) {
+	ret = 0
 	if err := loadSieveConfigFromConfigMap(eventType, key, object, true); err != nil {
 		log.Println("loadSieveConfigFromConfigMap", err)
 		return
@@ -530,6 +531,10 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) {
 		return
 	}
 	checkResponse(response)
+	if response.Message == "Omit" {
+		ret = 1
+	}
+	return
 }
 
 func NotifyTestAfterAPIServerRecv(eventType, key string, object interface{}) {
