@@ -824,6 +824,14 @@ func parseAction(raw map[interface{}]interface{}) Action {
 			triggerGraph:       triggerGraph,
 			triggerDefinitions: triggerDefinitions,
 		}
+	case omitEvent:
+		return &OmitEventAction{
+			async:              async,
+			waitBefore:         waitBefore,
+			waitAfter:          waitAfter,
+			triggerGraph:       triggerGraph,
+			triggerDefinitions: triggerDefinitions,
+		}
 	default:
 		log.Fatalf("invalid action type %s\n", actionType)
 		return nil

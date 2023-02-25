@@ -114,7 +114,8 @@ func (sm *StateMachine) processNotification(notification TriggerNotification) {
 			if triggerGraph.fullyTriggered() {
 				log.Printf("all triggers are satisfied for action %d\n", sm.nextState)
 				action.run(sm.actionConext)
-				if _, ok := action.(OmitEventAction); ok {
+				if _, ok := action.(*OmitEventAction); ok {
+					log.Println("OmitEventAction Finish")
 					msg = "Omit"
 				}
 				if !action.isAsync() {

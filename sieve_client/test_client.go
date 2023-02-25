@@ -532,6 +532,7 @@ func NotifyTestBeforeAPIServerRecv(eventType, key string, object interface{}) (r
 	}
 	checkResponse(response)
 	if response.Message == "Omit" {
+		log.Printf("Omit %s %s %s\n", eventType, resourceKey, string(jsonObject))
 		ret = 1
 	}
 	return
