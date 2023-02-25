@@ -5,16 +5,16 @@ from utils import exec_bash
 
 def get_lab():
     res = {}
-    labs = exec_bash("kind get clusters").split('\n')
+    labs = exec_bash("kind get clusters")
     containers = exec_bash(
-        "docker ps --format {{.Names}}/{{.CreatedAt}}/{{.Status}}").split('\n')
+        "docker ps --format {{.Names}}/{{.CreatedAt}}/{{.Status}}")
     for lab in labs:
         res[lab] = []
     for ctn in containers:
         ctn = ctn.split('/')
         for lab in labs:
             if ctn[0].startswith(lab):
-                res[lab].append([ctn])
+                res[lab].append(ctn)
                 break
     return json.dumps(res)
 
