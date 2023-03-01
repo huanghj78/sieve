@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, request
 from flask import render_template
-from apps import lab
+from handler import lab
 router = Flask(__name__, template_folder="./Frontend/dist",
                static_folder="./Frontend/dist", static_url_path="")
 
@@ -20,7 +20,7 @@ def get_lab():
     return lab.get_lab()
 
 
-# @router.route("/Laboratory",  methods=['POST'])
-# def create_lab():
-#     data = request.get_json()
-#     pass
+@router.route("/Laboratory",  methods=['POST'])
+def create_lab():
+    data = request.get_json()
+    return lab.create_lab(data['name'], data['apiserver_cnt'], data['worker_cnt'])
