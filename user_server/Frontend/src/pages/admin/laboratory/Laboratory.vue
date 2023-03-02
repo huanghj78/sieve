@@ -77,8 +77,8 @@
   const labs = ref(data.slice(0, 8))
 
   let dialogVisible = ref(false)
-  let targets = ''
-  let workflows = ''
+  let targets = {}
+  let workflows = {}
   const form = reactive({
     name: '',
     apiServerNum: 1,
@@ -90,7 +90,7 @@
   onMounted(async () => {
     await getTarget()
       .then(res => {
-        targets = res
+        targets = res.data
       })
       .catch(err => {
         console.log(err)
@@ -98,7 +98,7 @@
 
     await getWorkflow()
       .then(res => {
-        workflows = res
+        workflows = res.data
       })
       .catch(err => {
         console.log(err)
