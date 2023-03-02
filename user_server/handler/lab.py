@@ -23,6 +23,6 @@ def get_lab():
 def create_lab(name, apiserver_cnt, worker_cnt, target, workflow):
     os.chdir(PROJECT_DIR)
     # build(controller_config_dir)
-    setup_cluster(name, os.path.join("/root/chaos_sieve/examples", target + ".yaml"),
-                  os.path.join("/root/chaos_sieve/mytest", workflow), apiserver_cnt, worker_cnt)
+    setup_cluster(name, os.path.join("/root/chaos_sieve/examples", target),
+                  os.path.join("/root/chaos_sieve/mytest", workflow + ".yaml"), apiserver_cnt, worker_cnt)
     return json.dumps({'msg': 'success'})
