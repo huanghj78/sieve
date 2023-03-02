@@ -9,6 +9,13 @@ from sieve_test_driver.test_framework import new_built_in_workload
 from sieve_common.common import RUNNING, TERMINATED
 
 test_cases = {
+    "delete": new_built_in_workload(70)
+    .cmd("kubectl delete PerconaServerMongoDB mongodb-cluster")
+    .wait_for_pod_status("mongodb-cluster-rs0-*", TERMINATED)
+    .wait_for_pvc_status("mongod-data-mongodb-cluster-rs0-*", TERMINATED),
+    "create": new_built_in_workload(70)
+    .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
+    .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING),
     "recreate": new_built_in_workload(70)
     .cmd("kubectl apply -f examples/mongodb-operator/test/cr.yaml")
     .wait_for_pod_status("mongodb-cluster-rs0-2", RUNNING)
