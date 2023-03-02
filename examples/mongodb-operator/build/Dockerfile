@@ -10,7 +10,7 @@ ARG GOOS=linux
 ARG GOARCH=amd64
 ARG CGO_ENABLED=0
 
-RUN mkdir -p build/_output/bin \
+RUN mkdir -p /etc/docker && echo {"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn", "https://registry.docker-cn.com", "https://reg-mirror.qiniu.com"]} > /etc/docker/daemon.json && export GOPROXY=https://goproxy.cn,direct && export GO111MODULE=on && mkdir -p build/_output/bin \
     && GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=$CGO_ENABLED GO_LDFLAGS=$GO_LDFLAGS \
     go build -ldflags "-w -s -X main.GitCommit=$GIT_COMMIT -X main.GitBranch=$GIT_BRANCH" \
     -o build/_output/bin/percona-server-mongodb-operator \
