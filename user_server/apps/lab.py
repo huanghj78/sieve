@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/root/chaos_sieve/")
 import subprocess
 import os
 import kubernetes
@@ -24,7 +26,7 @@ from sieve_common.common import (
     get_all_controllers,
 )
 
-ORIGINAL_DIR = os.getcwd()
+PROJECT_DIR = "/root/chaos_sieve"
 
 DEFAULT_K8S_VERSION = "v1.18.9"
 K8S_VER_TO_APIMACHINERY_VER = {"v1.18.9": "v0.18.9", "v1.23.1": "v0.23.1"}
@@ -47,7 +49,7 @@ def download_controller(
     common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
+    application_dir = os.path.join(PROJECT_DIR, "app", controller_config.controller_name)
     # If for some permission issue that we can't remove the operator, try sudo
     if cmd_early_exit("rm -rf %s" % application_dir, early_exit=False) != 0:
         print("We cannot remove %s, try sudo instead" % application_dir)
@@ -61,7 +63,7 @@ def download_controller(
     cmd_early_exit("git checkout -b sieve >> /dev/null")
     for commit in controller_config.cherry_pick_commits:
         cmd_early_exit("git cherry-pick %s" % commit)
-    os.chdir(ORIGINAL_DIR)
+    os.chdir(PROJECT_DIR)
 
 
 def remove_replacement_in_go_mod_file(file):
@@ -80,7 +82,7 @@ def remove_replacement_in_go_mod_file(file):
 def install_lib_for_controller(
     common_config: CommonConfig, controller_config: ControllerConfig
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
+    application_dir = os.path.join(PROJECT_DIR, "app", controller_config.controller_name)
     # download controller_runtime
     cmd_early_exit(
         "go mod download sigs.k8s.io/controller-runtime@%s >> /dev/null"
@@ -165,7 +167,7 @@ def install_lib_for_controller(
     os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")
     cmd_early_exit('git commit -m "install the lib" >> /dev/null')
-    os.chdir(ORIGINAL_DIR)
+    os.chdir(PROJECT_DIR)
 
 
 def update_go_mod_for_controller(
@@ -173,7 +175,7 @@ def update_go_mod_for_controller(
     common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
+    application_dir = os.path.join(PROJECT_DIR, "app", controller_config.controller_name)
     # modify the go.mod to import the libs
     remove_replacement_in_go_mod_file("%s/go.mod" % application_dir)
     with open("%s/go.mod" % application_dir, "a") as go_mod_file:
@@ -241,27 +243,25 @@ def update_go_mod_for_controller(
     os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")
     cmd_early_exit('git commit -m "import the lib" >> /dev/null')
-    os.chdir(ORIGINAL_DIR)
+    os.chdir(PROJECT_DIR)
 
 
 def instrument_controller(
     common_config: CommonConfig, controller_config: ControllerConfig, mode
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
+    application_dir = os.path.join(PROJECT_DIR, "app", controller_config.controller_name)
     os.chdir("sieve_instrumentation")
     instrumentation_config = {
         "project": controller_config.controller_name,
         "mode": mode,
-        "app_file_path": "%s/%s" % (ORIGINAL_DIR, application_dir),
-        "controller_runtime_filepath": "%s/%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
+        "app_file_path": "%s" % application_dir,
+        "controller_runtime_filepath": "%s/sieve-dependency/src/sigs.k8s.io/controller-runtime@%s"
         % (
-            ORIGINAL_DIR,
             application_dir,
             controller_config.controller_runtime_version,
         ),
-        "client_go_filepath": "%s/%s/sieve-dependency/src/k8s.io/client-go@%s"
+        "client_go_filepath": "%s/sieve-dependency/src/k8s.io/client-go@%s"
         % (
-            ORIGINAL_DIR,
             application_dir,
             controller_config.client_go_version,
         ),
@@ -271,13 +271,13 @@ def instrument_controller(
     cmd_early_exit("go mod tidy")
     cmd_early_exit("go build")
     cmd_early_exit("./instrumentation config.json")
-    os.chdir(ORIGINAL_DIR)
+    os.chdir(PROJECT_DIR)
 
 
 def install_lib_for_controller_with_vendor(
     common_config: CommonConfig, controller_config: ControllerConfig
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
+    application_dir = os.path.join(PROJECT_DIR, "app", controller_config.controller_name)
     cmd_early_exit(
         "cp -r sieve_client %s"
         % os.path.join(application_dir, controller_config.vendored_sieve_client_path)
@@ -299,7 +299,7 @@ def install_lib_for_controller_with_vendor(
     os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")
     cmd_early_exit('git commit -m "install the lib" >> /dev/null')
-    os.chdir(ORIGINAL_DIR)
+    os.chdir(PROJECT_DIR)
 
 
 def update_go_mod_for_controller_with_vendor(
@@ -307,7 +307,7 @@ def update_go_mod_for_controller_with_vendor(
     common_config: CommonConfig,
     controller_config: ControllerConfig,
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
+    application_dir = os.path.join(PROJECT_DIR, "app", controller_config.controller_name)
     with open(os.path.join(application_dir, "go.mod"), "a") as go_mod_file:
         go_mod_file.write("require sieve.client v0.0.0\n")
     with open(
@@ -347,25 +347,23 @@ def update_go_mod_for_controller_with_vendor(
     os.chdir(application_dir)
     cmd_early_exit("git add -A >> /dev/null")
     cmd_early_exit('git commit -m "import the lib" >> /dev/null')
-    os.chdir(ORIGINAL_DIR)
+    os.chdir(PROJECT_DIR)
 
 
 def instrument_controller_with_vendor(
     common_config: CommonConfig, controller_config: ControllerConfig, mode
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
+    application_dir = os.path.join(PROJECT_DIR, "app", controller_config.controller_name)
     os.chdir("sieve_instrumentation")
     instrumentation_config = {
         "project": controller_config.controller_name,
         "mode": mode,
-        "app_file_path": os.path.join(ORIGINAL_DIR, application_dir),
+        "app_file_path": os.path.join(application_dir),
         "controller_runtime_filepath": os.path.join(
-            ORIGINAL_DIR,
             application_dir,
             controller_config.vendored_controller_runtime_path,
         ),
         "client_go_filepath": os.path.join(
-            ORIGINAL_DIR,
             application_dir,
             controller_config.vendored_client_go_path,
         ),
@@ -375,7 +373,7 @@ def instrument_controller_with_vendor(
     cmd_early_exit("go mod tidy")
     cmd_early_exit("go build")
     cmd_early_exit("./instrumentation config.json")
-    os.chdir(ORIGINAL_DIR)
+    os.chdir(PROJECT_DIR)
 
 
 def build_controller(
@@ -384,10 +382,10 @@ def build_controller(
     image_tag,
     container_registry,
 ):
-    application_dir = os.path.join("app", controller_config.controller_name)
+    application_dir = os.path.join(PROJECT_DIR, "app", controller_config.controller_name)
     os.chdir(application_dir)
     cmd_early_exit("./build.sh %s %s" % (container_registry, image_tag))
-    os.chdir(ORIGINAL_DIR)
+    os.chdir(PROJECT_DIR)
     os.system(
         "docker tag %s %s/%s:%s"
         % (
@@ -491,7 +489,7 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
     retry_cnt = 0
     while retry_cnt < 5:
         try:
-            cmd_early_exit("kind delete cluster")
+            cmd_early_exit(f"kind delete cluster --name {name}")
             # sleep here in case if the machine is slow and kind cluster deletion is not done before creating a new cluster
             time.sleep(5 + 10 * retry_cnt)
             retry_cnt += 1
@@ -501,7 +499,7 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
                 % (name, k8s_container_registry, k8s_image_tag, kind_config)
             )
             cmd_early_exit(
-                "docker exec kind-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
+                f"docker exec {name}-control-plane bash -c 'mkdir -p /root/.kube/ && cp /etc/kubernetes/admin.conf /root/.kube/config'"
             )
             break
         except Exception:
@@ -512,7 +510,7 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
     print("Waiting for apiservers to be ready...")
     apiserver_list = []
     for i in range(apiserver_cnt):
-        apiserver_name = "kube-apiserver-kind-control-plane" + (
+        apiserver_name = f"kube-apiserver-{name}-control-plane" + (
             "" if i == 0 else str(i + 1)
         )
         apiserver_list.append(apiserver_name)
@@ -526,25 +524,24 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
             break
         time.sleep(1)
     cmd_early_exit("cp %s chaos_server/server.yaml" % test_plan)
-    org_dir = os.getcwd()
-    os.chdir("chaos_server")
+    os.chdir(os.path.join(PROJECT_DIR, "chaos_server"))
     cmd_early_exit("go mod tidy")
     # TODO: we should build a container image for sieve server
     cmd_early_exit("env GOOS=linux GOARCH=amd64 go build")
-    os.chdir(org_dir)
-    cmd_early_exit("docker cp chaos_server kind-control-plane:/chaos_server")
+    os.chdir(PROJECT_DIR)
+    cmd_early_exit(f"docker cp chaos_server {name}-control-plane:/chaos_server")
 
     cprint("Update APIServer...", bcolors.OKGREEN)
     cmd_early_exit(
-        "docker cp /root/chaos_sieve/fakegopath/src/k8s.io/kubernetes/_output/release-images/amd64/kube-apiserver.tar kind-control-plane:/")
+        f"docker cp /root/chaos_sieve/fakegopath/src/k8s.io/kubernetes/_output/release-images/amd64/kube-apiserver.tar {name}-control-plane:/")
     cmd_early_exit(
-        'docker exec kind-control-plane sh -c "ctr -n k8s.io images import kube-apiserver.tar"')
-    cmd_early_exit("docker exec kind-control-plane sh -c \"sed -i 's/kube-apiserver:v1.18.9-sieve-94f372e501c973a7fa9eb40ec9ebd2fe7ca69848-dirty/kube-apiserver-amd64:v1.18.9-dirty/' /etc/kubernetes/manifests/kube-apiserver.yaml\"")
+        f'docker exec {name}-control-plane sh -c "ctr -n k8s.io images import kube-apiserver.tar"')
+    cmd_early_exit(f"docker exec {name}-control-plane sh -c \"sed -i 's/kube-apiserver:v1.18.9-sieve-94f372e501c973a7fa9eb40ec9ebd2fe7ca69848-dirty/kube-apiserver-amd64:v1.18.9-dirty/' /etc/kubernetes/manifests/kube-apiserver.yaml\"")
     ok("APIServer Updated")
 
     cprint("Setting up Sieve server...", bcolors.OKGREEN)
     cmd_early_exit(
-        "docker exec kind-control-plane bash -c 'cd /chaos_server && ./chaos_server &> chaos_server.log &'"
+        f"docker exec {name}-control-plane bash -c 'cd /chaos_server && ./chaos_server &> chaos_server.log &'"
     )
     ok("Sieve server set up")
 
@@ -562,7 +559,7 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
         controller_config.controller_name,
         image_tag,
     )
-    kind_load_cmd = "kind load docker-image %s" % (image)
+    kind_load_cmd = "kind load docker-image %s --name %s" % (image, name)
     print("Loading image %s to kind nodes..." % (image))
     if cmd_early_exit(kind_load_cmd, early_exit=False) != 0:
         print("Cannot load image %s locally, try to pull from remote" % (image))
@@ -571,4 +568,4 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
     ok("Gen Config Map Finished")
 
     cmd_early_exit("go build user_client.go")
-    cmd_early_exit("docker cp user_client kind-control-plane:/chaos_server")
+    cmd_early_exit(f"docker cp user_client {name}-control-plane:/chaos_server")
