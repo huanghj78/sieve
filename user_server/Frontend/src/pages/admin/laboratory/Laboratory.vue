@@ -67,16 +67,15 @@
 <script setup lang="ts">
   import { onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import data from '../../../data/lab/data.json'
   import { reactive } from 'vue'
   import {getLaboratory, createLaboratory} from '../../../api/laboratory.js'
   import {getTarget} from '../../../api/target.js'
   import {getWorkflow} from '../../../api/workflow.js'
   const { t } = useI18n()
 
-  const labs = ref(data.slice(0, 8))
 
   let dialogVisible = ref(false)
+  let labs = {}
   let targets = {}
   let workflows = {}
   const form = reactive({
@@ -88,6 +87,14 @@
   })
 
   onMounted(async () => {
+    await getLaboratory()
+      .then(res => {
+        labs = res.data
+      })
+      .catch(err => {
+        console.log(err)
+      })
+
     await getTarget()
       .then(res => {
         targets = res.data
