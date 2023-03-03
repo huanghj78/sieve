@@ -1,5 +1,34 @@
 <template>
-  <el-button type="primary" class="button" @click="dialogVisible = true">Create Laboratory</el-button>
+  <el-button type="primary" class="button" @click="dialogVisible=true">Create Laboratory</el-button>
+   <div class="markup-tables flex">
+    <va-card class="flex mb-4" v-for="(lab, index) in labs.list" :key="lab['name']">
+      <va-card-title>{{ lab['name'] }}</va-card-title>
+      <va-card-content>
+        <div class="table-wrapper">
+          <table class="va-table">
+            <thead>
+              <tr>
+                <th>{{ t('node name') }}</th>
+                <th>{{ t('create at') }}</th>
+                <th>{{ t('status') }}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr v-for="node in lab['nodes']" :key="node['name']">
+                <td>{{ node['name'] }}</td>
+                <td>{{ node['created_at'] }}</td>
+                <td>
+                  <va-badge :text="node['status']" :color="getStatusColor()" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </va-card-content>
+    </va-card>
+  </div>
+  
   <el-dialog v-model="dialogVisible" title="Laboratory info">
     <el-form :model="form" label-width="120px">
       <el-form-item label="Laboratory Name">
@@ -34,34 +63,6 @@
       </el-row>
     </el-form>
   </el-dialog>
-  <div class="markup-tables flex">
-    <va-card class="flex mb-4" v-for="lab in labs" :key="lab.name">
-      <va-card-title>{{ lab.name }}</va-card-title>
-      <va-card-content>
-        <div class="table-wrapper">
-          <table class="va-table">
-            <thead>
-              <tr>
-                <th>{{ t('node name') }}</th>
-                <th>{{ t('create at') }}</th>
-                <th>{{ t('status') }}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr v-for="node in lab.nodes" :key="node.name">
-                <td>{{ node.name }}</td>
-                <td>{{ node.created_at }}</td>
-                <td>
-                  <va-badge :text="node.status" :color="getStatusColor()" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </va-card-content>
-    </va-card>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -73,9 +74,21 @@
   import {getWorkflow} from '../../../api/workflow.js'
   const { t } = useI18n()
 
+  interface INode {
+    name: string
+    created_at: string
+    status: string
+  }
+
+  interface ILab {
+    name: string 
+    nodes : INode[]
+  }
 
   let dialogVisible = ref(false)
-  let labs = {}
+  let labs = reactive({
+    list: []
+  })
   let targets = {}
   let workflows = {}
   const form = reactive({
@@ -89,7 +102,8 @@
   onMounted(async () => {
     await getLaboratory()
       .then(res => {
-        labs = res.data
+        console.log(res)
+        labs.list = res.data
       })
       .catch(err => {
         console.log(err)
