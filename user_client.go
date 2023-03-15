@@ -4,25 +4,23 @@ import (
 	"fmt"
 	"net/rpc"
 	"os"
-
+	"strconv"
 	"sieve.client"
 )
 
 func main() {
-	var isRunImmediately bool
-	if os.Args[1] == "0" {
-		isRunImmediately = false
-	} else {
-		isRunImmediately = true
-	}
-	hostPort := "kind-control-plane:12345"
+	var labName string
+	var runImmediatelyCount int
+	labName = os.Args[1]
+	runImmediatelyCount, _ = strconv.Atoi(os.Args[2])
+	hostPort := labName + "-control-plane:12345"
 	rpcClient, err := rpc.Dial("tcp", hostPort)
 	if err != nil {
 		fmt.Printf("error in setting up connection to %s due to %v\n", hostPort, err)
 		return
 	}
 	request := sieve.UpdateTestPlanRequest{
-		IsRunImmediately: isRunImmediately,
+		RunImmediatelyCount: runImmediatelyCount,
 	}
 	var response sieve.Response
 	err = rpcClient.Call("TestCoordinator.UpdateTestPlanAPICall", request, &response)

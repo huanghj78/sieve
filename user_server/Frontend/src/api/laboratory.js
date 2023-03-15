@@ -14,3 +14,13 @@ export function createLaboratory(form) {
     'workflow': form.workflow
   })
 }
+
+
+export function getAPIServerName(labName) {
+  console.log(labName)
+  return axios({
+    method: "get",
+    url: "/APIServer",
+    params: { lab_name: labName }
+  })
+}

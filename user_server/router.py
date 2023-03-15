@@ -25,11 +25,36 @@ def create_lab():
     data = request.get_json()
     return lab.create_lab(data['name'], data['apiserver_cnt'], data['worker_cnt'], data['target'], data['workflow'])
 
+@router.route("/APIServer",  methods=['GET'])
+def get_apiserver():
+    lab_name = request.args.get('lab_name')
+    return lab.get_apiserver(lab_name)
+
 @router.route("/Target",  methods=['GET'])
 def get_target():
     return target.get_target()
 
+@router.route("/Workflow/all",  methods=['GET'])
+def get_all_workflow():
+    return workflow.get_all_workflow()
+
 @router.route("/Workflow",  methods=['GET'])
 def get_workflow():
-    return workflow.get_workflow()
+    lab_name = request.args.get('lab_name')
+    workflow_name = request.args.get('workflow')
+    return workflow.get_workflow(lab_name, workflow_name)
 
+@router.route("/Workflow/new",  methods=['POST'])
+def create_workflow():
+    data = request.get_json()
+    return workflow.create_workflow(data['workflow_form'], data['plan_form'])
+
+@router.route("/Workflow/run",  methods=['POST'])
+def run_workflow():
+    data = request.get_json()
+    return workflow.run_workflow(data['lab_name'], data['workflow'])
+
+@router.route("/Workflow/delete",  methods=['POST'])
+def delete_workflow():
+    data = request.get_json()
+    return workflow.delete_workflow(data['lab_name'], data['workflow'])

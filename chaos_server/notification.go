@@ -75,7 +75,7 @@ type ChaosSvrNotification interface {
 
 type UpdateTestPlanNotification struct {
 	notificationType int
-	isRunImmediately bool
+	runImmediatelyCount int
 	blockingCh       chan string
 }
 
@@ -87,6 +87,6 @@ func (n *UpdateTestPlanNotification) getNotificationType() int {
 	return n.notificationType
 }
 
-func (n *UpdateTestPlanNotification) getIsRunImmediately() bool {
-	return n.isRunImmediately
+func (n *UpdateTestPlanNotification) getRunImmediatelyCount() int {
+	return n.runImmediatelyCount
 }

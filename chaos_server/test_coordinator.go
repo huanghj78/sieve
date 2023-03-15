@@ -175,10 +175,12 @@ func (tc *testCoordinator) SendObjectCreateNotificationAndBlock(handlerName, res
 	log.Printf("%s: send ObjectCreateNotification\n", handlerName)
 	tc.stateNotificationCh <- notification
 	if <-blockingCh == "Omit" {
+		log.Println("receive omit")
 		ret = 1
 	}
 	log.Printf("%s: block over for ObjectCreateNotification\n", handlerName)
-	return
+	log.Printf("cur ret: %d\n", ret)
+	return ret
 }
 
 func (tc *testCoordinator) SendObjectDeleteNotificationAndBlock(handlerName, resourceKey, observedWhen, observedBy string) (ret int) {
@@ -379,6 +381,7 @@ func (tc *testCoordinator) NotifyTestBeforeAPIServerRecv(request *sieve.NotifyTe
 	switch request.OperationType {
 	case API_ADDED:
 		ret = tc.SendObjectCreateNotificationAndBlock(handlerName, request.ResourceKey, beforeAPIServerRecv, request.APIServerHostname)
+		log.Printf("SendObjectCreateNotificationAndBlock !ret: %d\n", ret)
 	case API_MODIFIED:
 		prevObjectStateStr := tc.ReadFromObjectStates(request.APIServerHostname, beforeAPIServerRecv, request.ResourceKey)
 		ret = tc.SendObjectUpdateNotificationAndBlock(handlerName, request.ResourceKey, beforeAPIServerRecv, request.APIServerHostname, strToMap(prevObjectStateStr), strToMap(request.Object))
@@ -391,6 +394,7 @@ func (tc *testCoordinator) NotifyTestBeforeAPIServerRecv(request *sieve.NotifyTe
 	tc.ProcessPauseAPIServerRecv(handlerName, request.APIServerHostname, request.ResourceKey)
 	msg := ""
 	if ret == 1 {
+		log.Println("send msg Omit")
 		msg = "Omit"
 	}
 	*response = sieve.Response{Message: msg, Ok: true}
@@ -584,7 +588,7 @@ func (tc *testCoordinator) UpdateTestPlanAPICall(request *sieve.UpdateTestPlanRe
 	notification := &UpdateTestPlanNotification{
 		notificationType: UpdateTestPlan,
 		blockingCh:       blockingCh,
-		isRunImmediately: request.IsRunImmediately,
+		runImmediatelyCount: request.RunImmediatelyCount,
 	}
 	log.Println("send UpdateTestPlanAPICall\n")
 	tc.svrNotificationCh <- notification

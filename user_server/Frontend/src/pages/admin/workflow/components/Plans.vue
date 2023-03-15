@@ -5,55 +5,113 @@
             <span class="card-title font-medium font-serif text-xl text-blue-900 text-opacity-85">
                 Plan
             </span>
-            <el-button @click="addNewItem">添加Plan</el-button>
+            <el-button @click="addNewItem">Add Plan</el-button>
         </div>
     </template>
-    <el-form  :model="item" ref="item" :rules="rules" label-width="120px" v-for="(item, index) in form.items" :key="index" :label="`Item ${index + 1}`">
-        <el-form-item label="Trigger Name">
-          <el-input class="input" v-model="item.name"></el-input>
-        </el-form-item>
-        <el-form-item label="Condition Type">
-            <el-select class="input" v-model="item.conditionType"  size="large">
-                <el-option
-                v-for="(item, index) in conditionType"
-                :key="item"
-                :label="item"
-                :value="item"
-                />
-            </el-select>
-        </el-form-item>
+    <el-form  :model="item" ref="item" :rules="rules" label-width="120px" v-for="(item, index) in planForm.items" :key="index" :label="`Item ${index + 1}`">
+        <el-row>
+        <el-col :span="23">
+            <el-form-item label="Action Type">
+            <el-select class="input" v-model="item.actionType"  size="large">
+                    <el-option
+                    v-for="(item, index) in actionType"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item v-if="item.actionType == 'pauseAPIServer' || item.actionType == 'resumeAPIServer'" label="APIServer Name">
+                <el-select class="input" v-model="item.actionArgs[0]"  size="large">
+                    <el-option
+                    v-for="(item, index) in apiserver"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item v-if="item.actionType == 'pauseAPIServer' || item.actionType == 'resumeAPIServer'" label="Pause Scope">
+                <el-input class="input" v-model="item.actionArgs[1]"></el-input>
+            </el-form-item>
 
-        <el-form-item label="Resorce Key">
-            <el-input class="input" v-model="item.resorceKey"></el-input>
-        </el-form-item>
+            <el-form-item v-if="item.actionType == 'pauseController' || item.actionType == 'resumeController'" label="Pause At">
+                <el-input class="input" v-model="item.actionArgs[0]"></el-input>
+            </el-form-item>
+            <el-form-item v-if="item.actionType == 'pauseController' || item.actionType == 'resumeController'" label="Pause Scope">
+                <el-input class="input" v-model="item.actionArgs[1]"></el-input>
+            </el-form-item>
 
-        <el-form-item label="Observed When ">
-            <el-select  class="input" v-model="item.observedWhen" size="large">
-                <el-option
-                v-for="item in observedWhen"
-                :key="item"
-                :label="item"
-                :value="item"
-                />
-            </el-select>
-        </el-form-item>
+            <el-form-item v-if="item.actionType == 'reconnectController'" label="Reconnected APIServer">
+                <el-select class="input" v-model="item.actionArgs[0]"  size="large">
+                    <el-option
+                    v-for="(item, index) in apiserver"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                    />
+                </el-select>
+            </el-form-item>
+
+            <el-form-item v-if="item.actionType == 'delayAPIServer'" label="APIServer Name">
+                <el-select class="input" v-model="item.actionArgs[0]"  size="large">
+                    <el-option
+                    v-for="(item, index) in apiserver"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                    />
+                </el-select>
+            </el-form-item>
+            <el-form-item v-if="item.actionType == 'delayAPIServer'" label="Delay Time(ms)">
+                <el-input class="input" v-model="item.actionArgs[1]"></el-input>
+            </el-form-item>
+            <el-form-item v-if="item.actionType == 'delayAPIServer'" label="Delay At">
+                <el-input class="input" v-model="item.actionArgs[2]"></el-input>
+            </el-form-item>
+            <el-form-item v-if="item.actionType == 'delayAPIServer'" label="Delay Scope">
+                <el-input class="input" v-model="item.actionArgs[3]"></el-input>
+            </el-form-item>
+        </el-col>
+        <el-col :span="1">
+            <el-button @click="deleteItem(index)" type="danger" :icon="Delete" circle />
+        </el-col>
+        </el-row>
         
-        <el-form-item label="Observed By">
-            <el-input class="input" v-model="item.observedBy"></el-input>
-        </el-form-item>
-
-        <el-divider />
-    </el-form>
-    <el-button type="primary" @click="expression = expression + '|'" >或</el-button>
-    <el-button type="primary" @click="expression = expression + '&'">与</el-button>
-    <el-button type="success" v-for="item in form.items" @click="expression = expression + item.name">{{item.name}}</el-button>
-    <el-divider direction="vertical" border-style="dashed" />
-    <el-input class="input" v-model="expression"></el-input>
+        <Triggers :triggerForm="item.triggerForm"></Triggers>
+        <el-divider/>
+    </el-form> 
+    
   </el-card>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
+import Triggers from './Triggers.vue'
+import {Delete} from '@element-plus/icons-vue'
+
+const props = defineProps({
+    apiserver: Array,
+    planForm: {
+        items: [
+            { actionType: '' ,
+                actionArgs: ['', '', '', ''],
+                triggerForm: {
+                    items: [
+                    { name: '' ,
+                        conditionType: '',
+                        resourceKey: '',
+                        observedWhen: '',
+                        observedBy: ''
+                    },
+                    ],
+                    expression: '',
+                    immediately: false
+                }
+            },
+        ],
+    }
+})
 
 const actionType = [
     'pauseAPIServer',
@@ -90,43 +148,55 @@ const observedWhen = [
     'afterAnnotatedAPICall',
 ]
 
-const form = reactive({
-    items: [
-    { actionType: '' ,
-        conditionType: '',
-        resorceKey: '',
-        observedWhen: '',
-        observedBy: ''
-    },
-    ],
-});
+onMounted(() => {
+    console.log(props.apiserver)
+})
 
-const expression = ref('')
+const deleteItem = (idx) => {
+    props.planForm.items.splice(idx, 1)
+}
+
+
+// const triggerForm = reactive({items: [
+//         { name: '123aaaa' ,
+//             conditionType: '',
+//             resourceKey: '',
+//             observedWhen: '',
+//             observedBy: ''
+//         },
+//         ]})
+        
+// const form = reactive({
+//     items: [
+//     { actionType: '' ,
+//         actionArgs: '',
+//         conditionType: '',
+//         resourceKey: '',
+//         observedWhen: '',
+//         observedBy: ''
+//     },
+//     ],
+// });
+
 
 const addNewItem = () => {
     console.log("!!!")
-    form.items.push({ name: '' ,
+    props.planForm.items.push({ name: '' ,
         conditionType: '',
-        resorceKey: '',
+        resourceKey: '',
         observedWhen: '',
-        observedBy: ''
-    });
-};
-
-const rules = {
-    items: [
-    { required: true, type: 'array', min: 1, message: '请至少添加一项' },
-    {
-        validator: (rule, value, callback) => {
-        const isValid = value.every((item) => item.name);
-        if (isValid) {
-            callback();
-        } else {
-            callback(new Error('请输入所有项的名称'));
+        observedBy: '',
+        triggerForm: {
+            items: [
+            { name: '' ,
+                conditionType: '',
+                resourceKey: '',
+                observedWhen: '',
+                observedBy: ''
+            },
+            ]
         }
-        },
-    },
-    ],
+    });
 };
 
 </script>

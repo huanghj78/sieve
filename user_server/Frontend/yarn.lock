@@ -157,6 +157,11 @@
   optionalDependencies:
     "vue-router" "^4.0.0"
 
+"@highlightjs/vue-plugin@^2.1.0":
+  "integrity" "sha512-E+bmk4ncca+hBEYRV2a+1aIzIV0VSY/e5ArjpuSN9IO7wBJrzUE2u4ESCwrbQD7sAy+jWQjkV5qCCWgc+pu7CQ=="
+  "resolved" "https://registry.npmjs.org/@highlightjs/vue-plugin/-/vue-plugin-2.1.0.tgz"
+  "version" "2.1.0"
+
 "@humanwhocodes/config-array@^0.9.2":
   "integrity" "sha512-ObyMyWxZiCu/yTisA7uzx81s40xR2fD5Cg/2Kq7G02ajkNubJf6BopgDTmDyc3U7sXpNKM8cYOw7s7Tyr+DnCw=="
   "resolved" "https://registry.npmjs.org/@humanwhocodes/config-array/-/config-array-0.9.5.tgz"
@@ -625,6 +630,11 @@
   "integrity" "sha512-3h04sJhF2rjOq8zUhyomORyKdr0RUts7FAz/JajBKGpTF0JSXjaj9fjWtAqj+pU1fwsGsHzcm3Neew3t/McUXA=="
   "resolved" "https://registry.npmjs.org/@types/svg-arc-to-cubic-bezier/-/svg-arc-to-cubic-bezier-3.2.0.tgz"
   "version" "3.2.0"
+
+"@types/vkbeautify@^0.99.2":
+  "integrity" "sha512-zbBKJTu2GRURMTj0vFSYRTnOB7Fz7uDZEFKLEkF1tbALUWHSPE84/VwCeJtM1YFOavtbp6xylFkLt6OxT6IG9A=="
+  "resolved" "https://registry.npmjs.org/@types/vkbeautify/-/vkbeautify-0.99.2.tgz"
+  "version" "0.99.2"
 
 "@types/web-bluetooth@^0.0.16":
   "integrity" "sha512-oh8q2Zc32S6gd/j50GowEjKLoOVOwHP/bWVjKJInBwQqdOYMdPrf1oVlelTlyfFK3CKxL1uahMDAr+vy8T7yMQ=="
@@ -1808,9 +1818,9 @@
     "d" "1"
     "es5-ext" "~0.10.14"
 
-"esbuild-windows-64@0.14.47":
-  "integrity" "sha512-/Pk5jIEH34T68r8PweKRi77W49KwanZ8X6lr3vDAtOlH5EumPE4pBHqkCUdELanvsT14yMXLQ/C/8XPi1pAtkQ=="
-  "resolved" "https://registry.npmjs.org/esbuild-windows-64/-/esbuild-windows-64-0.14.47.tgz"
+"esbuild-linux-64@0.14.47":
+  "integrity" "sha512-nFNOk9vWVfvWYF9YNYksZptgQAdstnDCMtR6m42l5Wfugbzu11VpMCY9XrD4yFxvPo9zmzcoUL/88y0lfJZJJw=="
+  "resolved" "https://registry.npmjs.org/esbuild-linux-64/-/esbuild-linux-64-0.14.47.tgz"
   "version" "0.14.47"
 
 "esbuild@^0.14.27":
@@ -2337,6 +2347,11 @@
   "version" "1.0.3"
   dependencies:
     "function-bind" "^1.1.1"
+
+"highlight.js@^11.0.1", "highlight.js@^11.7.0":
+  "integrity" "sha512-1rRqesRFhMO/PRF+G86evnyJkCgaZFOI+Z6kdj15TA18funfoqJXvgPCLSf0SWq3SRfg1j3HlDs8o4s3EGq1oQ=="
+  "resolved" "https://registry.npmjs.org/highlight.js/-/highlight.js-11.7.0.tgz"
+  "version" "11.7.0"
 
 "human-signals@^3.0.1":
   "integrity" "sha512-rQLskxnM/5OCldHo+wNXbpVgDn5A17CUoKX+7Sokwaknlq7CdSnphy0W39GU8dw59XiCXmFXDg4fRuckQRKewQ=="
@@ -3585,6 +3600,11 @@
   optionalDependencies:
     "fsevents" "~2.3.2"
 
+"vkbeautify@^0.99.3":
+  "integrity" "sha512-2ozZEFfmVvQcHWoHLNuiKlUfDKlhh4KGsy54U0UrlLMR1SO+XKAIDqBxtBwHgNrekurlJwE8A9K6L49T78ZQ9Q=="
+  "resolved" "https://registry.npmjs.org/vkbeautify/-/vkbeautify-0.99.3.tgz"
+  "version" "0.99.3"
+
 "vt-pbf@^3.1.3":
   "integrity" "sha512-2LzDFzt0mZKZ9IpVF2r69G9bXaP2Q2sArJCmcCgvfTdCCZzSyz4aCLoQyUilu37Ll56tCblIZrXFIjNUpGIlmA=="
   "resolved" "https://registry.npmjs.org/vt-pbf/-/vt-pbf-3.1.3.tgz"
@@ -3646,7 +3666,7 @@
   "resolved" "https://registry.npmjs.org/vue-yandex-maps/-/vue-yandex-maps-0.12.3.tgz"
   "version" "0.12.3"
 
-"vue@^2.6.14 || ^3.2.0", "vue@^3.0.0", "vue@^3.0.0-0 || ^2.6.0", "vue@^3.0.4", "vue@^3.2.0", "vue@^3.2.25", "vue@3.2.37":
+"vue@^2.6.14 || ^3.2.0", "vue@^3", "vue@^3.0.0", "vue@^3.0.0-0 || ^2.6.0", "vue@^3.0.4", "vue@^3.2.0", "vue@^3.2.25", "vue@3.2.37":
   "integrity" "sha512-bOKEZxrm8Eh+fveCqS1/NkG/n6aMidsI6hahas7pa0w/l7jkbssJVsRhVDs07IdDq7h9KHswZOgItnwJAgtVtQ=="
   "resolved" "https://registry.npmjs.org/vue/-/vue-3.2.37.tgz"
   "version" "3.2.37"

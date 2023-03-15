@@ -29,33 +29,33 @@ func NewStateMachine(testPlan *TestPlan, stateNotificationCh chan TriggerNotific
 	}
 }
 
-func (sm *StateMachine) RunTestPlan() {
+func (sm *StateMachine) RunTestPlan(runImmediatelyCount int) {
 	log.Println("Here is RunTestPlan")
-	for _, action := range sm.states {
+	for i := 0; i < runImmediatelyCount; i++ {
+		action := sm.states[sm.nextState]
 		action.run(sm.actionConext)
 		if !action.isAsync() {
 			sm.nextState += 1
 			if sm.nextState >= len(sm.states) {
-				log.Println("Sieve test coordinator finishes all actions")
+				log.Println("Chaos coordinator finishes all actions")
 			} else {
 				sm.setTimeoutForTimeoutTriggers()
 			}
 		} else {
+			// stop run test plan if the action is async
 			sm.asyncActionInExecution = true
+			break
 		}
 	}
 }
 
-func (sm *StateMachine) UpdateStates(testPlan *TestPlan, isRunImmediately bool) error {
+func (sm *StateMachine) UpdateStates(testPlan *TestPlan, runImmediatelyCount int) error {
 	if sm.states == nil || sm.nextState >= len(sm.states) {
 		sm.states = testPlan.actions
 		sm.nextState = 0
 		log.Println("UpdateStates Success")
-		if isRunImmediately {
-			log.Println("Begin Run Test Plan")
-			sm.RunTestPlan()
-			log.Println("Finish Run Test Plan")
-		}
+		// todo
+		sm.RunTestPlan(runImmediatelyCount)
 		return nil
 	}
 	log.Println("UpdateStates Fail")

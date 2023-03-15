@@ -5,6 +5,9 @@ go 1.16
 replace sieve.client => ../sieve_client
 
 require (
-	k8s.io/apimachinery v0.18.9 // indirect
+	gopkg.in/yaml.v2 v2.4.0
+	k8s.io/api v0.25.4
+	k8s.io/apimachinery v0.25.4
+	k8s.io/client-go v0.25.4
 	sieve.client v0.0.0-00010101000000-000000000000
 )

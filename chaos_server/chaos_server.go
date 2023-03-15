@@ -27,7 +27,7 @@ func (cs *ChaosServer) updateTestPlan(notification *UpdateTestPlanNotification) 
 	}()
 	config := getConfig()
 	testPlan := parseTestPlan(config)
-	if err := cs.stateMachine.UpdateStates(testPlan, notification.getIsRunImmediately()); err != nil {
+	if err := cs.stateMachine.UpdateStates(testPlan, notification.getRunImmediatelyCount()); err != nil {
 		ret = fmt.Sprintf("%s", err)
 	}
 	log.Println(testPlan)

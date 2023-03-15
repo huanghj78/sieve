@@ -15,17 +15,9 @@
     </template>
     <template #center>
       <div class="app-navbar-center">
-        <span class="app-navbar-center__text mr-2">{{ t('navbar.messageUs') }}</span>
-        <a
-          class="app-navbar-center__mail mr-2"
-          href="mailto:hello@epicmax.co"
-          target="_blank"
-          :style="{ color: colors.primary }"
-        >
-          hello@epicmax.co
-        </a>
+        <span class="app-navbar-center__text mr-2">Chaosieve Source Code: </span>
         <va-button
-          href="https://github.com/epicmaxco/vuestic-admin"
+          href="https://github.com/huanghj78/sieve"
           color="#000000"
           class="app-navbar-center__github-button"
           icon="github"
