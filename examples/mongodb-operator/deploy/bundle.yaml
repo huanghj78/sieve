@@ -259,7 +259,7 @@ spec:
             - name: LOG_VERBOSE
               value: "false"
             - name: KUBERNETES_SERVICE_HOST
-              value: "kind-control-plane"
+              value: "${SIEVE-NS}-control-plane"
             - name: KUBERNETES_SERVICE_PORT
               value: "6443"
           envFrom:

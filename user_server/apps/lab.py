@@ -8,6 +8,8 @@ import traceback
 import sieve
 import yaml
 import json
+import shutil
+import docker
 from sieve_common.config import (
     CommonConfig,
     load_controller_config,
@@ -25,12 +27,29 @@ from sieve_common.common import (
     deploy_directory,
     get_all_controllers,
 )
-
-PROJECT_DIR = "/root/chaos_sieve"
+from utils import PROJECT_DIR, exec_bash
 
 DEFAULT_K8S_VERSION = "v1.18.9"
 K8S_VER_TO_APIMACHINERY_VER = {"v1.18.9": "v0.18.9", "v1.23.1": "v0.23.1"}
 
+def watch_crd(crds, addrs):
+    for addr in addrs:
+        for crd in crds:
+            cmd_early_exit(
+                "kubectl get %s -s %s --ignore-not-found=true" % (crd, addr))
+
+
+def get_apiserver_ports(lab, num_api):
+    client = docker.from_env()
+    ports = []
+    for i in range(num_api):
+        container_name_prefix = f"{lab}-control-plane"
+        suffix = str(i + 1) if i > 0 else ""
+        cp_port = client.containers.get(container_name_prefix + suffix).attrs[
+            "NetworkSettings"
+        ]["Ports"]["6443/tcp"][0]["HostPort"]
+        ports.append(cp_port)
+    return ports
 
 def update_sieve_client_go_mod_with_version(go_mod_path, version):
     fin = open(go_mod_path)
@@ -539,11 +558,11 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
     cmd_early_exit(f"docker exec {name}-control-plane sh -c \"sed -i 's/kube-apiserver:v1.18.9-sieve-94f372e501c973a7fa9eb40ec9ebd2fe7ca69848-dirty/kube-apiserver-amd64:v1.18.9-dirty/' /etc/kubernetes/manifests/kube-apiserver.yaml\"")
     ok("APIServer Updated")
 
-    cprint("Setting up Sieve server...", bcolors.OKGREEN)
+    cprint("Setting up Chaos server...", bcolors.OKGREEN)
     cmd_early_exit(
         f"docker exec {name}-control-plane bash -c 'cd /chaos_server && ./chaos_server &> chaos_server.log &'"
     )
-    ok("Sieve server set up")
+    ok("Chaos server set up")
 
     print("Waiting for apiservers to be ready...")
     # ensure that every apiserver will see the configmap is created
@@ -551,7 +570,7 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
     cprint("Generate Config Map...", bcolors.OKGREEN)
     configmap = _generate_configmap(test_plan)
     print(configmap)
-    cmd_early_exit("kubectl apply -f %s" % configmap)
+    cmd_early_exit("kubectl apply -f %s " % (configmap))
 
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (
@@ -569,3 +588,61 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
 
     cmd_early_exit("go build user_client.go")
     cmd_early_exit(f"docker cp user_client {name}-control-plane:/chaos_server")
+
+
+def setup_operator(lab, controller_config_dir):
+    common_config = get_common_config()
+    controller_config = sieve.load_controller_config(controller_config_dir)
+    num_apiservers = 1
+    # deploy_controller(test_context)
+    deployment_file = controller_config.controller_deployment_file_path
+    # backup deployment file
+    backup_deployment_file = deployment_file + ".bkp"
+    shutil.copyfile(deployment_file, backup_deployment_file)
+    fin = open(deployment_file)
+    data = fin.read()
+    data = data.replace("${SIEVE-DR}", common_config.container_registry)
+    data = data.replace("${SIEVE-DT}", "test")
+    data = data.replace("${SIEVE-NS}", lab)
+    fin.close()
+    fin = open(deployment_file, "w")
+    fin.write(data)
+    fin.close()
+    os.chdir(os.path.join(controller_config_dir, "deploy"))
+    cmd_early_exit(f"./deploy.sh")
+
+    os.chdir(PROJECT_DIR)
+
+    shutil.copyfile(backup_deployment_file, deployment_file)
+    os.remove(backup_deployment_file)
+
+    kubernetes.config.load_kube_config()
+    core_v1 = kubernetes.client.CoreV1Api()
+
+    # Wait for controller pod ready
+    print("Wait for the operator pod to be ready...")
+    pod_ready = False
+    for tick in range(600):
+        controller_pod = core_v1.list_namespaced_pod(
+            "default",
+            watch=False,
+            label_selector="sievetag=" + controller_config.controller_name,
+        ).items
+        if len(controller_pod) >= 1:
+            if controller_pod[0].status.phase == "Running":
+                pod_ready = True
+                break
+        time.sleep(1)
+    if not pod_ready:
+        fail("waiting for the operator pod to be ready")
+        raise Exception("Wait timeout after 600 seconds")
+
+    apiserver_addr_list = []
+    apiserver_ports = get_apiserver_ports(lab, num_apiservers)
+    # print("apiserver ports", apiserver_ports)
+    for port in apiserver_ports:
+        apiserver_addr_list.append("https://127.0.0.1:" + port)
+    watch_crd(
+        controller_config.custom_resource_definitions, apiserver_addr_list
+    )
+    ok("Operator deployed")
