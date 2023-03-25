@@ -704,7 +704,7 @@ func parseTriggerDefinition(raw map[interface{}]interface{}) TriggerDefinition {
 			observedBy:        observationPoint["by"].(string),
 		}
 	default:
-		log.Fatalf("invalid trigger type %v", conditionType)
+		// log.Fatalf("invalid trigger type %v", conditionType)
 		return nil
 	}
 }
@@ -723,7 +723,10 @@ func parseAction(raw map[interface{}]interface{}) Action {
 	triggerDefinitions := map[string]TriggerDefinition{}
 	for _, definition := range definitions {
 		triggerDefinition := parseTriggerDefinition(definition.(map[interface{}]interface{}))
-		triggerDefinitions[triggerDefinition.getTriggerName()] = triggerDefinition
+		if triggerDefinition != nil {
+			triggerDefinitions[triggerDefinition.getTriggerName()] = triggerDefinition
+		}
+		
 	}
 
 	actionType := raw["actionType"].(string)

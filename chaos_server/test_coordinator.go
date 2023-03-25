@@ -589,11 +589,17 @@ func (tc *testCoordinator) UpdateTestPlanAPICall(request *sieve.UpdateTestPlanRe
 		notificationType: UpdateTestPlan,
 		blockingCh:       blockingCh,
 		runImmediatelyCount: request.RunImmediatelyCount,
+		isForced: request.IsForce,
 	}
 	log.Println("send UpdateTestPlanAPICall\n")
 	tc.svrNotificationCh <- notification
 	res := <-blockingCh
 	log.Println("block over for UpdateTestPlanAPICall\n")
-	*response = sieve.Response{Message: res, Ok: true}
+	if res == "Success" {
+		*response = sieve.Response{Message: res, Ok: true, Number: 0}
+	} else {
+		*response = sieve.Response{Message: res, Ok: false, Number: -1}
+	}
+	
 	return nil
 }

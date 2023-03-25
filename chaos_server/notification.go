@@ -77,6 +77,7 @@ type UpdateTestPlanNotification struct {
 	notificationType int
 	runImmediatelyCount int
 	blockingCh       chan string
+	isForced 		bool
 }
 
 func (n *UpdateTestPlanNotification) getBlockingCh() chan string {
@@ -89,4 +90,8 @@ func (n *UpdateTestPlanNotification) getNotificationType() int {
 
 func (n *UpdateTestPlanNotification) getRunImmediatelyCount() int {
 	return n.runImmediatelyCount
+}
+
+func (n *UpdateTestPlanNotification) getIsForced() bool {
+	return n.isForced
 }
