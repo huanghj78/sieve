@@ -185,4 +185,5 @@ type EchoAPICallRequest struct {
 
 type UpdateTestPlanRequest struct {
 	RunImmediatelyCount int
+	IsForce bool
 }
