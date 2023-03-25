@@ -302,6 +302,7 @@
     "laboratory": "Laboratory",
     "workflow": "Workflow",
     "target": "Target",
+    "result": "Result",
     "formElements": "Form Elements",
     "forms": "Forms",
     "mediumEditor": "Medium Editor",

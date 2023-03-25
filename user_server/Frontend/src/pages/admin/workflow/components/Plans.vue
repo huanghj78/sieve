@@ -63,14 +63,11 @@
                     />
                 </el-select>
             </el-form-item>
-            <el-form-item v-if="item.actionType == 'delayAPIServer'" label="Delay Time(ms)">
+            <el-form-item v-if="item.actionType == 'delayAPIServer'" label="Delay Time(s)">
                 <el-input class="input" v-model="item.actionArgs[1]"></el-input>
             </el-form-item>
-            <el-form-item v-if="item.actionType == 'delayAPIServer'" label="Delay At">
-                <el-input class="input" v-model="item.actionArgs[2]"></el-input>
-            </el-form-item>
             <el-form-item v-if="item.actionType == 'delayAPIServer'" label="Delay Scope">
-                <el-input class="input" v-model="item.actionArgs[3]"></el-input>
+                <el-input class="input" v-model="item.actionArgs[2]"></el-input>
             </el-form-item>
         </el-col>
         <el-col :span="1">
@@ -95,7 +92,7 @@ const props = defineProps({
     planForm: {
         items: [
             { actionType: '' ,
-                actionArgs: ['', '', '', ''],
+                actionArgs: ['', '', ''],
                 triggerForm: {
                     items: [
                     { name: '' ,

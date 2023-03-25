@@ -10,7 +10,7 @@ import UIRoute from '../pages/admin/ui/route'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/:catchAll(.*)',
-    redirect: { name: 'dashboard' },
+    redirect: { name: 'laboratory' },
   },
   {
     name: 'admin',
@@ -36,6 +36,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'target',
         path: 'target',
         component: () => import('../pages/admin/target/Target.vue'),
+      },
+      {
+        name: 'result',
+        path: 'result',
+        component: () => import('../pages/admin/result/Result.vue'),
       },
       UIRoute,
     ],

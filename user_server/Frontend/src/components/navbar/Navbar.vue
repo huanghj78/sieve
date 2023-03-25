@@ -9,7 +9,7 @@
           @click="isSidebarMinimized = !isSidebarMinimized"
         />
         <router-link to="/">
-          <vuestic-logo class="logo" />
+          <img alt="Vuestic UI Logo" height="65" width="120" src="../../../public/chaosieve.png">
         </router-link>
       </div>
     </template>

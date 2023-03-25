@@ -2,14 +2,21 @@
   <el-button type="primary" class="button" @click="dialogVisible=true">Create Laboratory</el-button>
    <div class="markup-tables flex">
     <va-card class="flex mb-4" v-for="(lab, index) in labs.list" :key="lab['name']">
-      <va-card-title>{{ lab['name'] }}</va-card-title>
+      <va-card-title>
+        <el-col :span="22"> 
+          {{ lab['name'] }}
+        </el-col>
+        <el-col :span="2">
+          <el-button type="danger" class="button" @click="_deleteLaboratory(lab['name'])" :icon="Delete" circle></el-button>
+        </el-col>
+      </va-card-title>
       <va-card-content>
         <div class="table-wrapper">
           <table class="va-table">
             <thead>
               <tr>
                 <th>{{ t('node name') }}</th>
-                <th>{{ t('create at') }}</th>
+                <th>{{ t('created at') }}</th>
                 <th>{{ t('status') }}</th>
               </tr>
             </thead>
@@ -43,18 +50,9 @@
       <el-form-item label="Target">
         <el-select v-model="form.target" class="m-2" placeholder="Select" size="large">
           <el-option v-for="target in targets"
-            :key="target"
-           :label="target"
-           :value="target"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="Workflow">
-        <el-select v-model="form.workflow" class="m-2" placeholder="Select" size="large">
-          <el-option v-for="workflow in workflows"
-            :key="workflow"
-           :label="workflow"
-           :value="workflow"
+            :key="target['name']"
+           :label="target['name']"
+           :value="target['name']"
           />
         </el-select>
       </el-form-item>
@@ -66,37 +64,24 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, ref } from 'vue'
+  import { onMounted, ref, reactive } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { reactive } from 'vue'
-  import {getLaboratory, createLaboratory} from '../../../api/laboratory.js'
+  import {Delete} from '@element-plus/icons-vue'
+  import { ElNotification } from 'element-plus'
+  import {getLaboratory, createLaboratory, deleteLaboratory} from '../../../api/laboratory.js'
   import {getTarget} from '../../../api/target.js'
-  import {getWorkflow} from '../../../api/workflow.js'
   const { t } = useI18n()
-
-  interface INode {
-    name: string
-    created_at: string
-    status: string
-  }
-
-  interface ILab {
-    name: string 
-    nodes : INode[]
-  }
 
   let dialogVisible = ref(false)
   let labs = reactive({
     list: []
   })
   let targets = {}
-  let workflows = {}
   const form = reactive({
     name: '',
     apiServerNum: 1,
     workerNum: 1,
     target: '',
-    workflow: '',
   })
 
   onMounted(async () => {
@@ -116,22 +101,55 @@
       .catch(err => {
         console.log(err)
       })
-
-    await getWorkflow()
-      .then(res => {
-        workflows = res.data
-      })
-      .catch(err => {
-        console.log(err)
-      })
   })
 
   function getStatusColor() {
     return 'success'
   }
 
-  function onSubmit() {
-    createLaboratory(form)
+  async function onSubmit() {
+    dialogVisible.value = false
+    ElNotification({
+      title: 'Success',
+      message: 'please wait...',
+      type: 'success',
+    })
+    await createLaboratory(form)
+    .then(res => {
+      if(res.data.code == 1) {
+        ElNotification({
+          title: 'Fail',
+          message: res.data.msg,
+          type: 'error',
+        })
+      }
+    })
+    await getLaboratory()
+      .then(res => {
+        console.log(res)
+        labs.list = res.data
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+
+  async function _deleteLaboratory(name: string) {
+    await deleteLaboratory(name)
+    .then(res => {
+      console.log(res)
+    })
+    .catch(err => {
+      console.log(err)
+    })
+    await getLaboratory()
+      .then(res => {
+        console.log(res)
+        labs.list = res.data
+      })
+      .catch(err => {
+        console.log(err)
+      })
   }
 </script>
 

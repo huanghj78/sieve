@@ -12,13 +12,6 @@ export default {
   },
   routes: [
     {
-      name: 'dashboard',
-      displayName: 'menu.dashboard',
-      meta: {
-        icon: 'vuestic-iconset-maps',
-      },
-    },
-    {
       name: 'laboratory',
       displayName: 'menu.laboratory',
       meta: {
@@ -37,6 +30,13 @@ export default {
       displayName: 'menu.target',
       meta: {
         icon: 'vuestic-iconset-components',
+      },
+    },
+    {
+      name: 'result',
+      displayName: 'menu.result',
+      meta: {
+        icon: 'vuestic-iconset-files',
       },
     }
   ] as INavigationRoute[],

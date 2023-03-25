@@ -4,11 +4,11 @@ export function getWorkflow() {
     return axios.get('/Workflow/all')
 }
 
-export function getDetail(labName, workflow) {
+export function getDetail(labName, targetName, workflow) {
     return axios({
         method: "get",
         url: "/Workflow",
-        params: { lab_name: labName, workflow: workflow }
+        params: { lab_name: labName, workflow: workflow, target_name: targetName }
     })
 }
 
@@ -19,17 +19,20 @@ export function createWorkflow(workflowForm, planForm) {
     })
 }
 
-export function deleteWorkflow(labName, workflow) {
+export function deleteWorkflow(labName, targetName, workflow) {
     return axios.post("/Workflow/delete", {
         lab_name: labName,
-        workflow: workflow
+        workflow: workflow,
+        target_name: targetName
     })
 }
 
-export function runWorkflow(labName, workflow) {
+export function runWorkflow(labName, targetName, workflow, hypothesisForm) {
     return axios.post("/Workflow/run", {
         lab_name: labName,
-        workflow: workflow
+        target_name: targetName,
+        workflow: workflow,
+        hypothesis_form: hypothesisForm
     })
 }
 
