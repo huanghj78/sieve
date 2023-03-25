@@ -30,11 +30,11 @@ def watch_crd(crds, addrs):
                 "kubectl get %s -s %s --ignore-not-found=true" % (crd, addr))
 
 
-def get_apiserver_ports(num_api):
+def get_apiserver_ports(name, num_api):
     client = docker.from_env()
     ports = []
     for i in range(num_api):
-        container_name_prefix = "kind-control-plane"
+        container_name_prefix = f"{name}-control-plane"
         suffix = str(i + 1) if i > 0 else ""
         cp_port = client.containers.get(container_name_prefix + suffix).attrs[
             "NetworkSettings"
@@ -55,6 +55,13 @@ if __name__ == "__main__":
         metavar="CONTROLLER_CONFIG_DIR",
         default="examples/mongodb-operator",
     )
+    parser.add_option(
+        "-n",
+        "--name",
+        dest="name",
+        help="",
+        default="kind",
+    )
     (options, args) = parser.parse_args()
     if options.controller_config_dir is None:
         parser.error("parameter controller required")
@@ -73,6 +80,7 @@ if __name__ == "__main__":
     data = fin.read()
     data = data.replace("${SIEVE-DR}", common_config.container_registry)
     data = data.replace("${SIEVE-DT}", "test")
+    data = data.replace("${SIEVE-NS}", options.name)
     fin.close()
     fin = open(deployment_file, "w")
     fin.write(data)
@@ -110,7 +118,7 @@ if __name__ == "__main__":
         raise Exception("Wait timeout after 600 seconds")
 
     apiserver_addr_list = []
-    apiserver_ports = get_apiserver_ports(num_apiservers)
+    apiserver_ports = get_apiserver_ports(options.name, num_apiservers)
     # print("apiserver ports", apiserver_ports)
     for port in apiserver_ports:
         apiserver_addr_list.append("https://127.0.0.1:" + port)

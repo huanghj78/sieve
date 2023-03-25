@@ -12,7 +12,7 @@
         "ADDED"
     ],
     "compress_trivial_reconcile_enabled": true,
-    "workload_hard_timeout": 600,
+    "workload_hard_timeout": 300,
     "workload_soft_timeout": 100,
     "generate_debugging_information_enabled": true,
     "causality_pruning_enabled": true,

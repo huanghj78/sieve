@@ -427,3 +427,15 @@ def build(controller_config_dir):
         mode,
         container_registry
     )
+
+if __name__ == "__main__":
+    usage = "usage: python3 build_controller.py [options]"
+    parser = optparse.OptionParser(usage=usage)
+    parser.add_option(
+        "-c",
+        "--controller_config_dir",
+        dest="controller_config_dir",
+        help="specify the CONTROLLER_CONFIG_DIR",
+        metavar="CONTROLLER_CONFIG_DIR",
+        default=None,
+    )
