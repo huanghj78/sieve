@@ -571,7 +571,8 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
     configmap = _generate_configmap(test_plan)
     print(configmap)
     cmd_early_exit("kubectl apply -f %s " % (configmap))
-
+    ok("Gen Config Map Finished")
+    
     # Preload operator image to kind nodes
     image = "%s/%s:%s" % (
         container_registry,
@@ -584,7 +585,7 @@ def setup_cluster(name, controller_config_dir, test_plan, apiserver_cnt, worker_
         print("Cannot load image %s locally, try to pull from remote" % (image))
         cmd_early_exit("docker pull %s" % (image))
         cmd_early_exit(kind_load_cmd)
-    ok("Gen Config Map Finished")
+    
 
     cmd_early_exit("go build user_client.go")
     cmd_early_exit(f"docker cp user_client {name}-control-plane:/chaos_server")
